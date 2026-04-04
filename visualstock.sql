@@ -1,0 +1,328 @@
+-- phpMyAdmin SQL Dump
+-- version 5.2.1
+-- https://www.phpmyadmin.net/
+--
+-- Gép: 127.0.0.1
+-- Létrehozás ideje: 2026. Feb 02. 09:16
+-- Kiszolgáló verziója: 10.4.32-MariaDB
+-- PHP verzió: 8.2.12
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Adatbázis: `visualstock`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Tábla szerkezet ehhez a táblához `termekek`
+--
+
+CREATE TABLE `termekek` (
+  `id` int(11) NOT NULL,
+  `cikkszam` varchar(50) NOT NULL,
+  `nev` varchar(255) NOT NULL,
+  `db` int(11) NOT NULL,
+  `max_keszlet` int(11) NOT NULL,
+  `updated_at` timestamp NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- A tábla adatainak kiíratása `termekek`
+--
+
+INSERT INTO `termekek` (`id`, `cikkszam`, `nev`, `db`, `max_keszlet`) VALUES
+(1, '601056', '100cm Kihúzható Ruhatartó Sztender Ipari Görgővel', 11, 20),
+(2, '150230', '100x100mm Thermo Vonalkód-Nyomtató Tekercses Címke', 3, 10),
+(3, '900102', '102 Méretjelölő vállfára', 9, 20),
+(4, '900106', '106 Méretjelölő vállfára', 9, 20),
+(5, '150505', '110 mm x 74 m Tezeko TZ100 Wax Festékszalag', 13, 20),
+(6, '900114', '114 Méretjelölő vállfára', 12, 20),
+(7, '900116', '116 Méretjelölő vállfára', 10, 20),
+(8, '900118', '118 Méretjelölő vállfára', 12, 20),
+(9, '404208', '11cm Fém Csipesz Vállfa Kampóval', 1422, 1900),
+(10, '900120', '120 Méretjelölő vállfára', 24, 40),
+(11, '900122', '122 Méretjelölő vállfára', 32, 50),
+(12, '6010414FT', '122cm Fekete Ipari Ruhatartó Sztender', 5, 10),
+(13, '503594', '122cm Sztender Takaró Fólia', 64, 90),
+(14, '900124', '124 Méretjelölő vállfára', 14, 20),
+(15, '105416', '125mm CDC Kézi Címkéző Körszál FEKETE (5.000 szál/#)', 84, 200),
+(16, '900126', '126 Méretjelölő vállfára', 14, 20),
+(17, '900132', '128 Méretjelző 100/csomag', 18, 30),
+(18, '900133', '140 Méretjelző 100/csomag', 4, 10),
+(19, '105415', '140mm Fokozatosan Állítható Kézi Körszál (1.000 szál/#)', 502, 600),
+(20, '601045TRUD', '150cm dupla rúd 150cm kihúzható sztenderhez', 9, 20),
+(21, '601047TFEKEZ', '150cm Fékezhető Ruha Sztender Klipszes Magasság Állítóval + 5db Vállfa', 100, 200),
+(22, '900152', '152 Méretjelző 100/csomag', 4, 10),
+(23, '6010395FT', '152cm Fekete Ipari Ruhatartó Sztender', 4, 10),
+(24, '601047SONG160', '160cm Kihúzható Ruhatartó Sztender Fékezhető Kerekekkel', 32, 50),
+(25, '6010406FT', '182cm Fekete Ipari Ruhatartó Sztender', 27, 40),
+(26, '503590', '182cm Sztender Takaró Fólia', 22, 40),
+(27, '105451', '190mm CDC Kézi Fonalkörszál, Címkéző Zsinór FEHÉR', 11, 20),
+(28, '105450', '190mm CDC Kézi Fonalkörszál, Címkéző Zsinór FEKETE', 7, 20),
+(29, '150218', '20mm Körcímke FLUO ZÖLD', 1, 10),
+(30, '900021', '21 Méretjelölő vállfára', 9, 20),
+(31, '900022', '22 Méretjelölő vállfára', 8, 20),
+(32, '150064', '22 x 12 Árazószalag PIROS METO CÍMKE', 42, 60),
+(33, '105420', '225mm CDC Kézi Címkéző Körszál', 13, 20),
+(34, '607451', '22L Bevásárló Kosár 2 füles FEKETE', 279, 400),
+(35, '607452', '22L Bevásárló Kosár 2 füles KÉK', 98, 200),
+(36, '607453', '22L Bevásárló Kosár 2 füles NARANCS', 150, 200),
+(37, '607458', '22L Bevásárló Kosár 2 füles PINK', 292, 400),
+(38, '607450', '22L Bevásárló Kosár 2 füles PIROS', 291, 400),
+(39, '607454', '22L Bevásárló Kosár 2 füles ZÖLD', 143, 200),
+(40, '150060', '22x12 Árazószalag FEHÉR', 320, 500),
+(41, '150083', '22x12 Árazószalag FLUO CITROMSÁRGA', 120, 200),
+(42, '150080', '22x12 Árazószalag FLUO NARANCS', 130, 200),
+(43, '150084', '22x12 Árazószalag FLUO PIROS', 70, 100),
+(44, '900023', '23 Méretjelölő vállfára', 14, 20),
+(45, '900024', '24 Méretjelölő vállfára', 7, 10),
+(47, '105702', '25mm Avery Dennison Standard Belövőszál', 76, 200),
+(48, '105026', '25mm CDC Belövőszál (5.000 szál/#) Standard', 69, 100),
+(49, '105240', '25mm CDC Standard FEKETE Belövőszál', 15, 30),
+(50, '105625', '25mm Fine Finom Utach Belövőszál (12.000 szál/#)', 16, 30),
+(51, '150077', '25x12 Árazószalag FEHÉR', 110, 200),
+(52, '150061', '25x16 Árazószalag FEHÉR', 400, 500),
+(53, '150086', '25x16 Árazószalag FLUO CITROMSÁRGA', 110, 200),
+(54, '150095', '25x16 Árazószalag FLUO NARANCSSÁRGA', 270, 400),
+(55, '150085', '25x16 Árazószalag FLUO PIROS', 130, 200),
+(56, '150096', '25x16 Árazószalag FLUO ZÖLD', 150, 300),
+(57, '150098', '25x16 Árazószalag KÉK', 80, 200),
+(58, '150061EA', '25x16 Egység Ár-Eladási Ár Árazószalag FEHÉR', 60, 90),
+(60, '700007', '26cm Nadrágtartós Gyerek Vállfa Műanyag Kampóval', 741, 1000),
+(61, '150087', '26x12 Árazószalag FLUO CITROMSÁRGA', 110, 200),
+(62, '900028', '28 Méretjelölő vállfára', 1, 10),
+(63, '700015', '28cm Csíptetős Gyerek Vállfa', 470, 600),
+(64, '700080', '29cm Fehér Állatmintás Gyerek Vállfa', 300, 400),
+(65, '900128', '3 Méretjelölő vállfára', 5, 10),
+(66, '404202', '30cm Állítható Csipeszes Fém Vállfa', 3585, 4100),
+(67, '402462', '30cm Fehér Gyerek Vállfa Nadrágtartós', 337, 500),
+(68, '700500', '30x40 mm fehér függő címke/etikett kis lyukkal', 167, 200),
+(69, '700500piros', '30x40 mm PIROS függő címke/etikett kis lyukkal', 25, 40),
+(70, '900031', '31 Méretjelölő vállfára', 4, 10),
+(71, '150208', '31mm Átlátszó Doboz Záró Tekercses Körcímke', 6, 10),
+(72, '900032', '32 Méretjelölő vállfára', 9, 20),
+(73, '60745034LRED', '34L Gurulós Piros Bevásárló Kosár Fekete Fogantyúval', 98, 200),
+(74, '402468', '35cm Fehér Csíptetős Fa Vállfa', 489, 600),
+(75, '402418', '35cm Matt Fekete Csíptetős Vállfa', 739, 1000),
+(76, '402628', '35cm Natúr Csíptetős Fa Vállfa', 535, 700),
+(77, '700022', '36cm Csíptetős Fekete Harang Vállfa', 664, 1000),
+(78, '700004', '36cm Fekete Gumis Csíptetős Vállfa', 6005, 6700),
+(79, '700004M', '36cm Gumis Csíptetős Fashion Store Vállfa', 5, 10),
+(80, '150212', '37/50/12 28 MÉTER BPA MENTES PÉNZTÁRGÉPSZALAG', 700, 900),
+(81, '150204', '38mm Körcímke FLUO CITROMSÁRGA', 5, 10),
+(82, '150206', '38mm Körcímke FLUO KÉK', 5, 10),
+(83, '150203', '38mm Körcímke FLUO MAGENTA', 5, 10),
+(84, '150202', '38mm Körcímke FLUO NARANCS', 5, 10),
+(85, '150201', '38mm Körcímke FLUO PIROS', 4, 10),
+(86, '150200', '38mm Körcímke FLUO ZÖLD', 5, 10),
+(87, '404200', '40cm Ezüst Drót Vállfa', 7270, 10500),
+(88, '700070', '40cm Fehér Drót vállfa', 450, 700),
+(89, '402450', '40cm Fehér Fa Vállfa Bevágásos Vállú', 398, 600),
+(90, '700801', '40cm Műanyag Forgatható Kampós Fehér Ing Vállfa', 340, 500),
+(91, '105029', '40mm CDC Belövőszál (5.000 szál/#) Standard', 26, 40),
+(92, '105210', '40mm Standard PIROS belövőszál', 20, 30),
+(93, '15022176', '40x25mm Matt Papír Vonalkód-Nyomtató Tekercses Címke', 8, 20),
+(94, '150221', '40x25mm Thermo Vonalkód-Nyomtató Tekercses Címke', 55, 70),
+(95, '700501', '40x60 mm Perforált fehér függő címke/etikett', 86, 200),
+(96, '402210', '41cm Fashion Store Vállfa Csúszásgátlós Gumis Vállú', 408, 500),
+(97, '700012', '41cm Keresztpántos Top Vállfa', 943, 1400),
+(98, '700013M', '41cm póló-ing vállfa bevágásos vállú', 9080, 12800),
+(99, '402458', '42cm Fehér Női Blézer Kabát Vállfa', 132, 200),
+(100, '700033HT', '42cm Hófehér Kosztüm Vállfa Háztartási Kiszerelés', 130, 200),
+(101, '700084', '42cm Kötöttáru Top Vállfa', 350, 600),
+(102, '405080', '43cm Fekete Selyem Vállfa', 175, 200),
+(103, '700072', '43cm Ing Fa Vállfa Nadrágtartós', 1, 10),
+(104, '150224', '43x38mm Thermo Vonalkód-Nyomtató Tekercses Címke', 70, 100),
+(105, '402616', '44cm Csíptetős Ing Fa Vállfa', 1475, 1800),
+(106, '402774', '44cm Diófa színű nadrágtartós fa vállfa arany kampóval', 1, 10),
+(107, '402424', '44cm Matt Fekete Nadrágtartós Fa Vállfa', 394, 600),
+(108, '402456', '44cm Nadrágtartós Fehér Fa Vállfa Bevágásos Vállú', 348, 500),
+(109, '402608', '44cm Nadrágtartós Ing Fa Vállfa Bevágásos Vállú', 508, 700),
+(110, '700082', '44cm széles Lux vállfa', 165, 300),
+(111, '70000347', '45,5 cm Zakó Vállfa', 228, 400),
+(112, '402412', '45cm Matt Fekete Széles Vállú Férfi Vállfa', 18, 30),
+(113, '402620', '45cm Natúr Öltöny Fa Vállfa Gumis Csúszásgátlóval', 73, 90),
+(114, '70000247', '45cm Öltöny Vállfa + Szivacsos Nadrágtartó', 803, 1000),
+(115, '105503', '45mm Kampós Standard Belövőszál', 11, 20),
+(116, '700002', '50cm Öltöny Vállfa Nadrágtartóval', 243, 300),
+(117, '700003', '50cm Zakó Vállfa', 115, 200),
+(118, '105718', '50mm Avery Dennison Prémium Standard Belövőszál', 2, 10),
+(119, '105032', '50mm CDC Belövőszál (5.000 szál/#) Standard', 86, 200),
+(120, '105640', '50mm Fine Finom Utach Belövőszál (10.000 szál/#)', 18, 30),
+(121, '150222', '50x25mm Thermo Vonalkód-Nyomtató Tekercses Címke', 13, 20),
+(122, '150241', '50x25mm Matt Papír Vonalkód-Nyomtató Tekercses Címke', 15, 30),
+(123, '150302', '57/30/12 9 MÉTER BPA MENTES BANKTERMINÁLSZALAG', 7000, 8700),
+(124, '150303', '57/40/12 17 MÉTER BPA MENTES BANKTERMINÁLSZALAG', 9000, 11000),
+(125, '150210', '57/50/12 28 MÉTER BPA MENTES PÉNZTÁRGÉPSZALAG', 7900, 10800),
+(126, '900058', '58 Méretjelölő vállfára', 3, 10),
+(127, '150226', '58x40mm Thermo Vonalkód-Nyomtató Tekercses Címke', 25, 40),
+(128, '150227-600', '58x43mm Thermo Tekercses MÉRLEGCÍMKE 560db címke/tekercs', 795, 1000),
+(129, '900131', '6 Méretjelölő vállfára', 10, 20),
+(130, '900060', '60 Méretjelölő vállfára', 3, 10),
+(131, '607441', '60×40mm Plexi Árcímketartó', 78, 200),
+(132, '900064', '64 Méretjelölő vállfára', 2, 10),
+(133, '105048', '65mm CDC Belövőszál (5.000 szál/#) Standard', 79, 90),
+(134, '105267', '65mm CDC Stdandard FEKETE Belövőszál', 16, 20),
+(135, '900066', '66 Méretjelölő vállfára', 21, 30),
+(136, '900068', '68 Méretjelölő vállfára', 25, 30),
+(137, '900070', '70 Méretjelölő vállfára', 18, 30),
+(138, '900072', '72 Méretjelölő vállfára', 18, 30),
+(139, '105408', '75mm CDC Kézi Címkéző Körszál FEHÉR (5.000 szál/#)', 16, 30),
+(140, '15030610', '80/50/12 28 MÉTER PÉNZTÁRGÉPSZALAG', 1000, 1500),
+(141, '150306', '80/80/12 75 MÉTER BPA MENTES PÉNZTÁRGÉPSZALAG', 1440, 2000),
+(142, '700506', '80x48 mm függő címke/etikett kis lyukkal AKCIÓ felirattal', 64, 90),
+(143, '700508', '80x48 mm SALE feliratos függő címke, kis lyukkal', 5, 10),
+(144, '900090', '90 Méretjelölő vállfára', 16, 20),
+(145, '900094', '94 Méretjelölő vállfára', 13, 20),
+(146, '900098', '98 Méretjelölő vállfára', 12, 20),
+(147, '607410', 'A4 Asztali Álló Laptok', 64, 90),
+(148, '607408', 'A4 Asztali Fekvő Laptok', 4, 10),
+(149, '990046', 'A4 Etikett, kerekített sarkú, 25,4x10 mm, APLI, 189 db/lap', 25, 40),
+(150, '810', 'A4 fénymásoló nyomtató papír', 6, 10),
+(151, '607412', 'A4 Info Tábla Fém Állvánnyal', 149, 200),
+(152, '607440', 'A4 Info Tábla Fém Állvánnyal, Hosszú Szárral', 2, 10),
+(153, '607411', 'A5 Asztali Álló Laptok', 84, 100),
+(154, '607407', 'A5 Asztali Fekvő Laptok', 11, 20),
+(155, '607422', 'A5 Info Tábla Fém Állvánnyal', 9, 20),
+(156, '607415', 'A6 Asztali Álló Laptok', 49, 70),
+(157, '833', 'Alkoholos marker, 3-5 mm, kúpos, KORES K-Marker. fekete', -4, 50),
+(158, '110100', 'Ársín 19mm x 1000mm VÍZTISZTA Hátlap 12mm VÍZTISZTA ragasztó', 44, 60),
+(159, '110103', 'Ársín 30mm x 1000mm FEHÉR Hátlap 12mm VÍZTISZTA ragasztó', 2374, 3100),
+(160, '110102', 'Ársín 30mm x 1000mm VÍZTISZTA hátlap 12mm VÍZTISZTA ragasztó', 2096, 3200),
+(161, '110104', 'Ársín 30mm x 1250mm VÍZTISZTA Hátlap 12mm VÍZTISZTA ragasztó', 508, 600),
+(162, '110107', 'Ársín 39,5mm x 1250mm VÍZTISZTA Hátlap 12mm VÍZTISZTA ragasztó', 126, 200),
+(163, '110105', 'Ársín 40mm x 1000mm FEHÉR Hátlap 12mm VÍZTISZTA ragasztó', 2356, 2600),
+(164, '111113', 'Ársín 40mm x 1000mm FEKETE Hátlap 12mm VÍZTISZTA ragasztó', 1526, 2100),
+(165, '110106', 'Ársín 40mm x 1000mm VÍZTISZTA Hátlap 12mm VÍZTISZTA ragasztó', 1599, 1900),
+(166, '110108', 'Ársín 52mm x 1000mm FEHÉR Hátlap 12mm VÍZTISZTA ragasztó', 60, 70),
+(167, '110109', 'Ársín 52mm x 1000mm VÍZTISZTA Hátlap 12mm VÍZTISZTA ragasztó', 25, 40),
+(168, '110110', 'Ársín 60mm x 1000mm FEHÉR Hátlap 12mm VÍZTISZTA ragasztó', 20, 30),
+(169, '150090', 'BLITZ Eredeti Árazógép Festékhenger', 165, 300),
+(170, '150043', 'Blitz P6 + 1 Festékhenger', 2, 10),
+(171, '150046', 'Blitz S14 + 1 Festékhenger', 2, 10),
+(172, '814', 'Boríték, LC5, öntapadó, VICTORIA', 339, 400),
+(173, '815', 'Boríték, LC6, öntapadó, VICTORIA', 440, 600),
+(174, '813', 'Boríték, TC4, öntapadó, VICTORIA', 125, 200),
+(175, '358181', 'Csomagolószalag, 50mm x 60m, VICTORIA FACILITY, átlátszó', 6, 10),
+(176, '358180', 'Csomagolószalag, 50mm x 60m, VICTORIA FACILITY, barna', 12, 20),
+(177, '503580', 'Fekete Öltönyzsák 60x110 cm', 103, 200),
+(178, '899s', 'Felírótábla, fa, A4, RAPESCO', 4, 10),
+(179, '150511', 'Festékszalag 64mm x 74m Tezeko 2300 Wax Resin', 9, 20),
+(180, '104431', 'Fine Vékonytűs Avery Dennison Belövőpisztoly', 2, 10),
+(181, '105320', 'Fine Vékonytűs PRÉMIUM FGS-2 Belövőpisztoly', 7, 10),
+(182, '105325', 'Finom Fine Vékony Belövőtű FGS-2 Finom Pisztolyhoz 5db', 3, 10),
+(183, '104782', 'Finom Fine Vékony Belövőtű UTACH', 142, 300),
+(184, '811', 'Genotherm, lefűzhető, A4, 50 mikron, narancsos felület', 8, 20),
+(185, '856', 'Gyorsfűző, karton, A4, VICTORIA, fehér', 19, 30),
+(186, '358187', 'Ingvállas Táska 19x38cm', 2000, 2900),
+(187, '358189', 'Ingvállas Táska 28x47cm', 3000, 4400),
+(188, '358188', 'Ingvállas Táska 31x51cm', 2500, 3700),
+(189, '358190', 'Ingvállas Táska 40x57cm', 1000, 1200),
+(190, '990100', 'Kábelkötegelő FEKETE 100 X 2,5 mm', 4, 10),
+(191, '990101', 'Kábelkötegelő FEKETE 150 X 2,5 mm', 4, 10),
+(192, '990105', 'Kábelkötegelő FEKETE 200 X 2,5 mm', 6, 10),
+(193, '990113', 'Kábelkötegelő FEKETE 280 X 4,8 mm', 3, 10),
+(194, '900005', 'L Méretjelölő vállfára', 8, 20),
+(195, '402574', 'Lopásgátlós Hotel Vállfa Csúszásgátlós Nadrágtartóval + Gyűrűvel', 309, 500),
+(196, '900004', 'M Méretjelölő vállfára', 2, 10),
+(197, '503510', 'Menyasszonyi Ruhazsák Fekete Szegéllyel 180x70cm', 45, 70),
+(199, '358192', 'Nylon Zacskó 20x26cm', 2000, 2700),
+(200, '358193', 'Nylon Zacskó 25x31cm', 2000, 2800),
+(201, '358194', 'Nylon Zacskó 28x36cm', 3000, 4000),
+(202, '358199', 'Nylon Zacskó Perforált Kenyeres Tasak 30cmx50cm', 1000, 1100),
+(203, '358197', 'Nylon Zacskó Perforált Kenyeres Tasak 33cmx55cm', 6000, 8800),
+(204, '358198', 'Nylon Zacskó Perforált Tasak 25cmx35cm', 1000, 1200),
+(205, '841', 'Nyomtatvány, bevételi pénztárbizonylat, 25x3, VICTORIA', 4, 10),
+(206, '842', 'Nyomtatvány, kiadási pénztárbizonylat, 25x2, VICTORIA', 4, 10),
+(207, '150094', 'OPEN Eredeti Árazógép Festékhenger 1 és 2 soros géphez', 130, 200),
+(208, '150061OPEN', 'OPEN ORIGINAL 25x16 Árazószalag FEHÉR', 61, 90),
+(209, '150037P7', 'Open P7 Árazógép + 1 Festékhenger', 4, 10),
+(210, '150037', 'OPEN S14 kétsoros árazógép + 1 Festékhenger', 10, 20),
+(211, '834', 'Öntapadó jegyzettömb, 75x75 mm, 100 lap, VICTORIA, sárga', 4, 10),
+(212, '110114', 'PATTINTÓS Ársín LS39 40mm x 1250mm Víztiszta. Linde, Tegometall, Eden', 43, 60),
+(213, '110116-1m', 'PATTINTÓS Ársín TE39 40mm x 1000mm Víztiszta. Linde, Tegometall, Eden', 84, 200),
+(214, '110116', 'PATTINTÓS Ársín TE39 40mm x 1250mm Víztiszta. Linde, Tegometall, Eden', -7, 50),
+(215, '110115', 'PATTINTÓS Ársín TER39 40mm x 1250mm Fehér. Linde, Tegometall, Eden', 33, 40),
+(216, '110113', 'Pattintós-Akasztós Hűtő Ársín 40mm x 1000mm Víztiszta', 24, 40),
+(217, '503500', 'Pink Alkalmi Ruhazsák Fekete Szegéllyel + 1db Fehér Vállfa', 35, 50),
+(218, '110001', 'Polccímke 30x50 mm Hőpapír Kartoncímke', 31, 50),
+(219, '110000', 'Polccímke 38x55mm Hőpapír Kartoncímke', 79, 200),
+(220, '110005', 'Polccímke 38x55mm Hőpapír Kartoncímke ZÖLD 1000db/tek.', 26, 40),
+(221, '110112', 'Polccímke 38x55mm Hőpapír Kartoncímke, sárga', 98, 200),
+(222, '110000VASTAG', 'Polccímke 40x55mm Hőpapír Prémium Kartoncímke FEHÉR 600db/tek.', 198, 300),
+(223, '110004VASTAG', 'Polccímke 40x55mm Hőpapír Prémium Kartoncímke PIROS 600db/tek.', 76, 90),
+(224, '110112VASTAG', 'Polccímke 40x55mm Hőpapír Prémium Kartoncímke SÁRGA 600db/tek.', 86, 200),
+(225, '110002', 'Polccímke 40x83mm Hőpapír Kartoncímke', 62, 90),
+(226, '110003', 'Polccímke 63,5x40 mm Hőpapír Kartoncímke', 3, 10),
+(227, '880', 'Radír, papírtokkal, VICTORIA V30', -10, 50),
+(229, '150307', 'Repont/Envipco Üvegvisszaváltó Automata Hőpapír 57/160/37', 36, 60),
+(230, '900003', 'S Méretjelölő vállfára', 3, 10),
+(231, '823', 'Spirálfüzet, A4, kockás, 70 lap, VICTORIA', -5, 50),
+(233, '104430', 'Standard Avery Dennison MKIII Belövőpisztoly', 39, 50),
+(234, '104432', 'Standard GP Belövőpisztoly', 140, 200),
+(235, '104450', 'Standard Japán Utach Belövőpisztoly', 61, 80),
+(236, '104708', 'Standard MKI Fém Belövőtű', 43, 60),
+(237, '104750', 'Standard MKII Belövőtű', 101, 200),
+(238, '358207', 'Szemeteszsák, 60 l, 10 db, VICTORIA FACILITY', -2, 50),
+(239, '358205', 'Szemeteszsák, extra erős, 30 l, 20 db, VICTORIA FACILITY', -3, 50),
+(240, '358218', 'Szemeteszsák, zárószalagos, 70 l, 15 db, VICTORIA FACILITY', -1, 50),
+(241, '601070', 'Teleszkópos Vállfa Leszedő', -1, 50),
+(242, '869', 'Tűzőkapocs, 24/6, MAPED', 33, 50),
+(243, '150056', 'UNO Árazógép Festékhenger 1 és 2 soros géphez', 113, 200),
+(244, '150054', 'UNO P6 Egysoros Árazógép + 1 Festékhenger', 8, 20),
+(245, '150055', 'UNO S14 Kétsoros Árazógép + Festékhenger', 30, 50),
+(246, '503560', 'Utazó Fekete Öltönyzsák + 1db Vállfa', 58, 90),
+(247, '601070R', 'Vállfa Leszedő Rúd', 44, 70),
+(248, '308618', 'Vállfa Méret Elválasztó FEHÉR DIVIDER', 1720, 2400),
+(249, '308621', 'Vállfa Méret Elválasztó FEKETE DIVIDER', 12, 20),
+(250, '308615', 'Vállfa Méret Elválasztó PIROS DIVIDER', 273, 400),
+(251, '503518', 'Vanília Menyasszonyi Ruhazsák Fehér Szegéllyel 180x70cm', 54, 80),
+(252, '943', 'Vegyszerálló toll fekete', 11, 20),
+(253, '150258', 'Victoria A4 Etikett, univerzális, 105x148 mm, 400 etikett/csomag (LCV11376)', 1, 10),
+(254, '150251', 'Victoria A4 Etikett, univerzális, 52,5x29,7 mm, 4000 etikett/csomag (LCV11378)', 3, 10),
+(255, '150255', 'Victoria A4 Etikett, univerzális, 70x35 mm, 2400 etikett/csomag (LCV11369)', 1, 10),
+(256, '503562', 'Víztiszta Öltönyzsák, Ruhavédőzsák, Molyzsák 58cm x 120cm', 1200, 1600),
+(257, '503563', 'Víztiszta Öltönyzsák, Ruhavédőzsák, Molyzsák 58cm x 140cm', 1600, 1900),
+(258, '503561', 'Víztiszta Öltönyzsák, Ruhavédőzsák, Molyzsák 58cm x 90cm', 800, 1000),
+(259, '503562500', 'Víztiszta Öltönyzsák, Ruhavédőzsák, Molyzsák 59cm x 120cm', 6500, 9200),
+(260, '900006', 'XL Méretjelölő vállfára', 17, 30),
+(261, '900002', 'XS Méretjelölő vállfára', 14, 20),
+(262, '900007', 'XXL Méretjelölő vállfára', 13, 20),
+(263, '900001', 'XXS Méretjelölő vállfára', 18, 30),
+(264, '900008', 'XXXL Méretjelölő vállfára', 16, 30),
+(265, '503508', 'Zipzáras Fekete Ruhazsák Fehér Szegéllyel 180cm magas', 92, 200);
+
+--
+-- Indexek a kiírt táblákhoz
+--
+
+--
+-- A tábla indexei `termekek`
+--
+ALTER TABLE `termekek`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- A kiírt táblák AUTO_INCREMENT értéke
+--
+
+--
+-- AUTO_INCREMENT a táblához `termekek`
+--
+ALTER TABLE `termekek`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=266;
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

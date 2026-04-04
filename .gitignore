@@ -1,0 +1,25 @@
+# Node.js
+node_modules/
+npm-debug.log*
+
+# Képek (nagy méretű fájlok)
+Lementett_Kepek/
+
+# Backup mappák
+Backup_code_freeze/
+
+# OS fájlok
+.DS_Store
+Thumbs.db
+
+# IDE mappák
+.vscode/
+.idea/
+
+# Env fájlok (titkok!)
+.env
+.env.local
+.env.*
+
+# Supabase lokális adatok
+.supabase/
