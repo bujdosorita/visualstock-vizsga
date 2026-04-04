@@ -4,6 +4,7 @@ npm-debug.log*
 
 # Képek (nagy méretű fájlok)
 Lementett_Kepek/
+frontend/Képek/
 
 # Backup mappák
 Backup_code_freeze/
@@ -21,5 +22,18 @@ Thumbs.db
 .env.local
 .env.*
 
-# Supabase lokális adatok
-.supabase/
+# Supabase lokális cache
+backend/supabase/.temp/
+
+# AI tervezési fájlok (nem kell a repóba)
+implementation_plan.md
+integration_strategy.md
+walkthrough.md
+
+# Segédscriptek
+download_images.js
+upload_images.js
+
+# Személyes fájlok
+Magyar-Angol szóbeli részem.docx
+VisualStock_Muszaki_Dokumentacio_Bujdoso_Kunszt_Makkai.docx
