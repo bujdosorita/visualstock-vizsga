@@ -2,7 +2,7 @@
 // 1. BACKEND API KAPCSOLAT
 // =========================================================================
 // Ezt a szerveroldali API-t hívjuk meg (Edge Function) a Supabase közvetlen elérése helyett
-const API_URL = "https://ktmmhgmfzfqbwianrsbx.supabase.co/functions/v1/api";
+const API_URL = "https://ktmmhgmfzfqbwianrsbx.supabase.co/functions/v1";
 
 // =========================================================================
 // 2. GLOBÁLIS VÁLTOZÓK - Az alkalmazás "memóriája"
@@ -167,7 +167,8 @@ function loginSuccess(session) {
     currentUser = session;
     
     // Elmentjük a böngésző memóriájába (localStorage) is, hogy oldalfrissítés után se kelljen újra belépni
-    localStorage.setItem('vs_session', JSON.stringify(session));
+    const sessionWithTime = { ...session, sessionStart: Date.now() };
+    localStorage.setItem('vs_session', JSON.stringify(sessionWithTime));
     
     // Eltüntetjük a fekete bejelentkező képernyőt (loginOverlay-t)
     document.getElementById('loginOverlay').style.display = 'none';
@@ -247,6 +248,31 @@ function updateClock() {
     if (clockEl) {
         // Kiírjuk magyar(hu-HU) formátumban óra és perc
         clockEl.innerText = now.toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' });
+    }
+    checkSecurityLimits(); // Biztonsági korlát ellenőrzése minden percben
+}
+
+// --- Biztonsági korlát: Automatikus kijelentkezés 17:00-kor ---
+function checkSecurityLimits() {
+    if (!currentUser) return;
+
+    const now = new Date();
+    const currentHour = now.getHours();
+    
+    // Lekérjük mikor lépett be a felhasználó
+    const saved = localStorage.getItem('vs_session');
+    if (!saved) return;
+    const sessionData = JSON.parse(saved);
+    const sessionStart = new Date(sessionData.sessionStart);
+    
+    // Ha elmúlt 17:00 (vagy reggel 8 előtt vagyunk), ÉS a belépés ma 17:00 előtt történt
+    // (Ez azt jelenti, hogy "benthagyott" fiók a munkaidő végéről)
+    const endOfWork = new Date();
+    endOfWork.setHours(17, 0, 0, 0);
+
+    if ((currentHour >= 17 || currentHour < 8) && sessionStart < endOfWork) {
+        console.warn("Biztonsági korlát: Munkaidő lejárt, automatikus kijelentkezés.");
+        handleLogout();
     }
 }
 
@@ -758,9 +784,9 @@ function handleImageFallback(img) {
         const attempt = parseInt(img.getAttribute('data-attempt') || '0'); // Melyik kísérletben futunk jelenleg?
 
         const patterns = [
-            `https://ktmmhgmfzfqbwianrsbx.supabase.co/storage/v1/object/public/termek-kepek/${sku}.jpg`, // 1. Elsődleges: Supabase Bucket
-            `https://ktmmhgmfzfqbwianrsbx.supabase.co/storage/v1/object/public/termek-kepek/${sku}.JPG`, // nagybetűs kiterjesztés esetleg
-            `https://ktmmhgmfzfqbwianrsbx.supabase.co/storage/v1/object/public/termek-kepek/${sku}.png`,
+            `https://ktmmhgmfzfqbwianrsbx.supabase.co/storage/v1/object/public/termek_kepek/${sku}.jpg`, // 1. Elsődleges: Supabase Bucket
+            `https://ktmmhgmfzfqbwianrsbx.supabase.co/storage/v1/object/public/termek_kepek/${sku}.JPG`, // nagybetűs kiterjesztés esetleg
+            `https://ktmmhgmfzfqbwianrsbx.supabase.co/storage/v1/object/public/termek_kepek/${sku}.png`,
             `https://vallfa.hu/img/41068/${sku}/560x560,r/${sku}.jpg`, // 2. Tartalék 1
             `https://vallfa.hu/img/41068/${sku}/500x500/${sku}.jpg`,
             `https://vallfa.hu/shop_ordered/41068/shop_altkep/${sku}.jpg`,
