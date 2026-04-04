@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="hu">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VisualStock Premium</title>
+    <!-- Stílus és színséma beállítások -->
+    <meta name="theme-color" content="#050510">
+    <!-- Google Fonts - Betűtípusok betöltése -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <!-- Ikon készlet (Phosphor Icons) -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Saját stíluslap cache-busting verzióval -->
+    <link rel="stylesheet" href="style.css?v=35">
+    <!-- PWA és Mobil ikonok -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="icon.svg">
+    <link rel="apple-touch-icon" href="icon.svg">
+</head>
+
+<body>
+
+    <!-- Animált háttér dekorációs elemek -->
+    <div class="bg-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        <div class="blob blob-3"></div>
+    </div>
+
+    <!-- BEJELENTKEZŐ ÉS REGISZTRÁCIÓS PANEL (Kezdetben ez látszik) -->
+    <div id="loginOverlay" class="login-overlay">
+        <div class="login-card">
+            <div class="login-header">
+                <i class="ph-fill ph-cube-transparent login-logo"></i>
+                <h2>VISUALSTOCK</h2>
+                <div class="subtitle">Belépés a rendszerbe</div>
+            </div>
+            <!-- BEJELENTKEZÉS NÉZET -->
+            <div id="loginFormView">
+                <div class="login-form">
+                    <div class="input-group">
+                        <i class="ph-bold ph-user"></i>
+                        <input type="text" id="username" placeholder="Felhasználónév" autocomplete="off">
+                    </div>
+                    <div class="input-group">
+                        <i class="ph-bold ph-key"></i>
+                        <input type="password" id="loginPassword" placeholder="Jelszó" autocomplete="off">
+                        <i class="ph-bold ph-eye password-toggle" onclick="togglePasswordVisibility('loginPassword')"></i>
+                    </div>
+                    <button type="button" class="btn-login" onclick="handleLogin()">
+                        <span>BEJELENTKEZÉS</span>
+                        <i class="ph-bold ph-arrow-right"></i>
+                    </button>
+                    <div id="loginError" class="login-error"></div>
+                    <div class="auth-switch">
+                        <a href="#" onclick="document.getElementById('forgotPasswordOverlay').style.display='flex'" style="color: var(--text-muted); display: block; margin-bottom: 10px; font-size: 0.9em; text-decoration: none;">Elfelejtett jelszó?</a>
+                        Nincs még fiókod? <a href="#" onclick="toggleLoginView('reg')">Regisztráció</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REGISZTRÁCIÓS NÉZET -->
+            <div id="regFormView" style="display: none;">
+                <div class="login-form">
+                    <div class="input-group">
+                        <i class="ph-bold ph-user-plus"></i>
+                        <input type="text" id="regUsername" placeholder="Felhasználónév" autocomplete="off">
+                    </div>
+                    <div class="input-group">
+                        <i class="ph-bold ph-envelope"></i>
+                        <input type="email" id="regEmail" placeholder="E-mail cím">
+                    </div>
+                    <div class="input-group">
+                        <i class="ph-bold ph-key"></i>
+                        <input type="password" id="regPassword" placeholder="Jelszó választása" autocomplete="off">
+                        <i class="ph-bold ph-eye password-toggle" onclick="togglePasswordVisibility('regPassword')"></i>
+                    </div>
+                    <button type="button" class="btn-login" onclick="handleRegister()">
+                        <span>REGISZTRÁCIÓ</span>
+                        <i class="ph-bold ph-user-plus"></i>
+                    </button>
+                    <div id="regError" class="login-error"></div>
+                    <div class="auth-switch">
+                        Van már fiókod? <a href="#" onclick="toggleLoginView('login')">Bejelentkezés</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FEJLÉC ÉS RENDSZERÁLLAPOT -->
+    <header>
+        <div class="header-content">
+            <!-- Logó és Irányítópult link -->
+            <div class="brand" onclick="renderDashboard()" style="cursor: pointer;">
+                <div class="logo-icon"><i class="ph-fill ph-cube-transparent"></i></div>
+                <div>
+                    <h1>VISUALSTOCK</h1>
+                    <div class="subtitle">Üzletberendezés Raktár <span class="divider">///</span> Élőkép</div>
+                </div>
+            </div>
+
+            <div class="header-right">
+                <!-- Rendszerinformációk: Felhasználó, Kapcsolat állapota, Óra -->
+                <div class="system-status">
+                    <div id="userBadge" class="user-badge admin-only">
+                        <i class="ph-bold ph-user-circle-gear"></i> <span id="userNameDisplay">Admin</span>
+                    </div>
+
+                    <div class="badge-kulcssoft">
+                        <i class="ph-bold ph-arrows-left-right"></i> Kulcs-Soft
+                        <span class="status-dot online"></span>
+                    </div>
+
+                    <div class="clock-badge">
+                        <i class="ph-bold ph-clock"></i> <span id="clock">--:--</span>
+                    </div>
+                </div>
+
+                <!-- Fejléc gombok: Mentés, Szinkron, Kilépés -->
+                <div class="header-actions">
+                    <button id="btnBulkSave" class="btn-bulk-save admin-only" onclick="confirmBulkUpdate()" disabled>
+                        <i class="ph-bold ph-floppy-disk"></i> <span>Módosítás Mentése</span>
+                        <span id="pendingCount" class="pending-count">0</span>
+                    </button>
+
+                    <button class="btn-sync" onclick="simulateSync()">
+                        <i class="ph-bold ph-arrows-clockwise"></i> <span>Szinkron</span>
+                    </button>
+
+                    <button class="btn-logout" onclick="handleLogout()">
+                        <i class="ph-bold ph-sign-out"></i>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </header>
+
+    <!-- FŐ VEZÉRLŐK: Keresés és Kategória szűrők -->
+    <main class="controls-container">
+        <!-- Keresőmező -->
+        <div class="search-wrapper">
+            <i class="ph-bold ph-magnifying-glass search-icon"></i>
+            <input type="text" id="searchInput" placeholder="Keresés név vagy cikkszám alapján..."
+                onkeyup="filterStock()">
+        </div>
+
+        <!-- Kategória választó gombok -->
+        <div class="category-buttons">
+            <button onclick="filterCategory('all', true)" class="active-btn"><i class="ph-fill ph-squares-four"></i>
+                Összes</button>
+            <button onclick="filterCategory('sztender')"><i class="ph-bold ph-coat-hanger"></i> Sztenderek,
+                Ruhaállványok</button>
+            <button onclick="filterCategory('vallfa')"><i class="ph-bold ph-t-shirt"></i> Fa, műanyag, fém
+                vállfák</button>
+            <button onclick="filterCategory('cimkezo')"><i class="ph-bold ph-tag"></i> Szálbelövők, Ruha Címke</button>
+            <button onclick="filterCategory('vonalcimke')"><i class="ph-bold ph-barcode"></i> Vonalkód- és
+                Körcímkék</button>
+            <button onclick="filterCategory('arazogep')"><i class="ph-bold ph-currency-circle-dollar"></i> Árazógépek és
+                Árazószalagok</button>
+            <button onclick="filterCategory('ruhazsak')"><i class="ph-bold ph-bag"></i> Ruhazsák, Öltönyzsák,
+                Ruhafólia</button>
+            <button onclick="filterCategory('polccimke')"><i class="ph-bold ph-rows"></i> Ársínek, Polccímkék</button>
+            <button onclick="filterCategory('plexitok')"><i class="ph-bold ph-frame-corners"></i> Plexi Laptok, Infó
+                Tábla</button>
+            <button onclick="filterCategory('kasszaszalag')"><i class="ph-bold ph-receipt"></i>
+                Pénztárgépszalagok</button>
+            <button onclick="filterCategory('taska')"><i class="ph-bold ph-shopping-bag"></i> Nylon táska, Ingvállas
+                táskák</button>
+            <button onclick="filterCategory('irodaszer')"><i class="ph-bold ph-paperclip"></i> Irodaszerek,
+                Kábelkötegelők</button>
+            <button onclick="filterCategory('kosar')"><i class="ph-bold ph-shopping-cart"></i> Bevásáló Kosár</button>
+        </div>
+    </main>
+
+    <!-- DINAMIKUS TARTALOM (Termékek és Dashboard helye) -->
+    <div id="app" class="grid-container"></div>
+
+    <!-- LÁBLÉC: Verzió és Készítők -->
+    <footer class="app-footer">
+        <div class="footer-content">
+            <div class="footer-branding">
+                <span class="copyright">© 2026 VISUALSTOCK PREMIUM</span>
+                <span class="tagline">Bujdosó Rita /// Kunszt Viktor /// Makkai Rebeka</span>
+            </div>
+            <div class="footer-version">v29.0.0 - Premium Edition</div>
+        </div>
+    </footer>
+
+    <!-- ELFELEJTETT JELSZÓ ABLAK -->
+    <div id="forgotPasswordOverlay" class="login-overlay" style="display: none; z-index: 2000;">
+        <div class="login-card" style="max-width: 400px; text-align: center;">
+            <div class="login-header">
+                <i class="ph-fill ph-lock-key login-logo" style="color: var(--neon-cyan); text-shadow: 0 0 20px rgba(0, 243, 255, 0.4);"></i>
+                <h2>Zárt Rendszer</h2>
+            </div>
+            <div style="margin-bottom: 25px; font-size: 1.1rem; color: var(--text-light); line-height: 1.5;">
+                A jelszó visszaállításához kérjük, fordulj a <strong style="color: white;">Rendszergazdához</strong>!
+            </div>
+            <div style="display: flex; gap: 15px; justify-content: center;">
+                <button type="button" class="btn-login" onclick="document.getElementById('forgotPasswordOverlay').style.display='none'" style="background: rgba(255,255,255,0.05); color: #8892b0; border: 1px solid rgba(255,255,255,0.1);">
+                    <i class="ph-bold ph-check"></i> <span>Értettem</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- EGYEDI MEGERŐSÍTŐ ABLAK (Custom Confirm Modal) -->
+    <div id="confirmOverlay" class="login-overlay" style="display: none; z-index: 2000;">
+        <div class="login-card" style="max-width: 400px; text-align: center;">
+            <div class="login-header">
+                <i class="ph-fill ph-warning-circle login-logo" style="color: var(--accent-orange); text-shadow: 0 0 20px rgba(255, 126, 8, 0.4);"></i>
+                <h2>Megerősítés</h2>
+            </div>
+            <div id="confirmMessage" style="margin-bottom: 25px; font-size: 1.1rem; color: var(--text-light);">
+                Biztosan módosítani kívánja az adatokat?
+            </div>
+            <div style="display: flex; gap: 15px; justify-content: center;">
+                <button type="button" class="btn-login" id="btnConfirmCancel" style="background: rgba(255,255,255,0.05); color: #8892b0; border: 1px solid rgba(255,255,255,0.1);">
+                    <i class="ph-bold ph-x"></i> <span>Mégse</span>
+                </button>
+                <button type="button" class="btn-login" id="btnConfirmOk">
+                    <span>Mentés</span> <i class="ph-bold ph-check"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alkalmazás logika (JavaScript) -->
+    <script src="script.js?v=36"></script>
+
+</body>
+
+</html>

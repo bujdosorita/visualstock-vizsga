@@ -1,0 +1,18 @@
+{
+  "id": "/",
+  "name": "VisualStock Premium",
+  "short_name": "VisualStock",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#050510",
+  "theme_color": "#050510",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any"
+    }
+  ]
+}
