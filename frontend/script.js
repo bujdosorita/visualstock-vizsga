@@ -627,14 +627,27 @@ async function saveBulkChanges() {
         
         // Ha idáig elért a program hiba nélkül, akkor SIKERES VOLT A MENTÉS!
         console.log(`Sikeresen módosítva: ${result.count || updates.length} db termék.`);
-        pendingChanges = {}; // Kiürítjük a mentendők kosarát
-        updatePendingBadge(); // Levesszük a jelvényt
+        
+        // --- SIKERES MENTÉS UTÁN ---
+        
+        // 1. Üzenet a gombra: Mentve!
+        btn.innerHTML = '<i class="ph-bold ph-check"></i> <span>Mentve!</span>';
+        btn.classList.add('save-success');
+
+        // 2. ÚJDONSÁG: Kiürítjük az összes manuális beviteli mezőt
+        // Ez jelzi a felhasználónak, hogy a beírt számok már rögzítve lettek
+        document.querySelectorAll('.manual-stock-input').forEach(input => {
+            input.value = ''; // Minden ilyen mezőt üresre állítunk
+        });
+
+        // 3. Visszajelzés az oldal tetején (badge) eltüntetése
+        pendingChanges = {}; 
+        updatePendingBadge();
         utolsoModositas = Date.now(); // Megjegyezzük, hogy mikor nyúltunk hozzá utoljára
         
-        // Visszajelzés az Adminnak is a gomb feliratával:
-        btn.innerHTML = '<i class="ph-bold ph-check"></i><span>Mentve!</span>';
         setTimeout(() => {
             btn.innerHTML = originalContent; // Visszaáll az eredeti formájára
+            btn.classList.remove('save-success');
             updatePendingBadge();
             fetchProducts(); // Töltsük le rögtön a vadiúj, internetes megerősített adatot!
         }, 2000); // 2 másodpercet várunk és utána hajtja végre (hogy látszódhasson a pipa)
