@@ -503,47 +503,56 @@ async function modifyStock(cikkszam, valtozas) {
     }
 }
 
-// Manuális készletmódosítás kezelése (közvetlen számbeírás)
+// --- MANUÁLIS KÉSZLET MÓDOSÍTÁS (Amikor a felhasználó maga írja be a számot) ---
+// Ez a függvény akkor fut le, ha valaki nem a +/- gombokkal kattintgat, 
+// hanem közvetlenül beír egy számot a beviteli mezőbe.
 async function setManualStock(cikkszam, ertek) {
+    // 1. Biztonsági ellenőrzés: Csak az adminisztrátorok módosíthatnak készletet
     if (!currentUser || currentUser.role !== 'admin') return;
+    
+    // Frissítjük az utolsó aktivitás idejét (hogy lássuk, még dolgozik valaki)
     utolsoModositas = Date.now();
 
+    // 2. Megkeressük a terméket a listánkban a cikkszáma alapján
     const termekIndex = termekek.findIndex(t => String(t.cikkszam) === String(cikkszam));
-    if (termekIndex === -1) return;
+    if (termekIndex === -1) return; // Ha valamiért nincs meg a termék, itt megállunk
 
-    // Érvényes számot kaptunk-e?
+    // 3. Ellenőrizzük, hogy amit beírt, az tényleg egy érvényes szám-e
     let ujKeszlet = parseInt(ertek);
-    if (isNaN(ujKeszlet)) return; 
+    if (isNaN(ujKeszlet)) return; // Ha nem szám (pl. üresen hagyta), nem csinálunk semmit
     
-    // Protokoll: Ne menjen 0 alá
+    // 4. Szabály: A készlet nem lehet negatív (0-nál kevesebb)
     if (ujKeszlet < 0) {
         ujKeszlet = 0;
         console.warn(`TC-03 Teszt: Figyelem! A készlet nem mehet nulla alá!`);
     }
 
+    // 5. Elmentjük az új számot a memóriába és a "mentésre váró" (pending) listába
     termekek[termekIndex].db = ujKeszlet;
     pendingChanges[cikkszam] = ujKeszlet;
+    
+    // Beállítjuk a mentés gombot: jelezzük rajta, hogy új módosítás történt
     updatePendingBadge();
 
-    // Grafikus frissítő rutin (ugyanaz mint a modifyStock-nál)
+    // 6. Azonnali vizuális frissítés: Átírjuk a kártyán a szöveget és a csíkot
     const cardEl = document.querySelector(`.card-container[data-cikkszam="${cikkszam}"]`);
     if (cardEl) {
         const t = termekek[termekIndex];
+        // Kiszámoljuk a telítettségi csík százalékát (mennyire van tele a raktár)
         let sz = t.max > 0 ? Math.round((t.db / t.max) * 100) : 0;
-        if (sz > 100) sz = 100;
+        if (sz > 100) sz = 100; // 100%-nál ne legyen hosszabb a csík
         
+        // Színkódolás: Zöld (sok), Sárga (közepes) vagy Piros (kevés)
         let sCl = 'stock-high'; let tCl = 'text-green';
         if (sz < 40) { sCl = 'stock-med'; tCl = 'text-yellow'; }
         if (sz < 20 || t.db <= 0) { sCl = 'stock-low'; tCl = 'text-red'; }
         
         const qS = cardEl.querySelector('.current-qty');
         const fD = cardEl.querySelector('.progress-fill');
-        const inputEl = cardEl.querySelector('.manual-stock-input');
         
+        // Itt ténylegesen átírjuk a HTML elemek tartalmát a képernyőn
         if (qS) { qS.innerText = t.db; qS.className = `current-qty ${tCl}`; }
         if (fD) { fD.style.width = `${sz}%`; fD.className = `progress-fill ${sCl}`; }
-        // Csak akkor írjuk felül az inputot ha tényleg más (hogy gépelés közben ne "ugráljon")
-        if (inputEl && inputEl.value != String(ujKeszlet)) { inputEl.value = ujKeszlet; }
     }
 }
 
@@ -925,7 +934,7 @@ function fullRender(adatok) {
                         <!-- Csak Az "ADMIN" nevű szerepkörhöz íródik hozzá, különben le van szedve CSS el a lapról ha Te "USER" vagy-->
                         <div class="card-actions admin-only">
                             <button class="btn-action btn-minus" onclick="event.stopPropagation(); modifyStock('${t.cikkszam}', -1)"><i class="ph-bold ph-minus"></i></button>
-                            <input type="number" class="manual-stock-input" value="${t.db}" 
+                            <input type="number" class="manual-stock-input" placeholder="${t.db}"
                                    onclick="event.stopPropagation()" 
                                    oninput="setManualStock('${t.cikkszam}', this.value)"
                                    onkeydown="if(event.key==='Enter') this.blur()"
