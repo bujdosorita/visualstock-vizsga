@@ -503,6 +503,50 @@ async function modifyStock(cikkszam, valtozas) {
     }
 }
 
+// Manuális készletmódosítás kezelése (közvetlen számbeírás)
+async function setManualStock(cikkszam, ertek) {
+    if (!currentUser || currentUser.role !== 'admin') return;
+    utolsoModositas = Date.now();
+
+    const termekIndex = termekek.findIndex(t => String(t.cikkszam) === String(cikkszam));
+    if (termekIndex === -1) return;
+
+    // Érvényes számot kaptunk-e?
+    let ujKeszlet = parseInt(ertek);
+    if (isNaN(ujKeszlet)) return; 
+    
+    // Protokoll: Ne menjen 0 alá
+    if (ujKeszlet < 0) {
+        ujKeszlet = 0;
+        console.warn(`TC-03 Teszt: Figyelem! A készlet nem mehet nulla alá!`);
+    }
+
+    termekek[termekIndex].db = ujKeszlet;
+    pendingChanges[cikkszam] = ujKeszlet;
+    updatePendingBadge();
+
+    // Grafikus frissítő rutin (ugyanaz mint a modifyStock-nál)
+    const cardEl = document.querySelector(`.card-container[data-cikkszam="${cikkszam}"]`);
+    if (cardEl) {
+        const t = termekek[termekIndex];
+        let sz = t.max > 0 ? Math.round((t.db / t.max) * 100) : 0;
+        if (sz > 100) sz = 100;
+        
+        let sCl = 'stock-high'; let tCl = 'text-green';
+        if (sz < 40) { sCl = 'stock-med'; tCl = 'text-yellow'; }
+        if (sz < 20 || t.db <= 0) { sCl = 'stock-low'; tCl = 'text-red'; }
+        
+        const qS = cardEl.querySelector('.current-qty');
+        const fD = cardEl.querySelector('.progress-fill');
+        const inputEl = cardEl.querySelector('.manual-stock-input');
+        
+        if (qS) { qS.innerText = t.db; qS.className = `current-qty ${tCl}`; }
+        if (fD) { fD.style.width = `${sz}%`; fD.className = `progress-fill ${sCl}`; }
+        // Csak akkor írjuk felül az inputot ha tényleg más (hogy gépelés közben ne "ugráljon")
+        if (inputEl && inputEl.value != String(ujKeszlet)) { inputEl.value = ujKeszlet; }
+    }
+}
+
 // Ez számolja meg hány mentetlen dolog van és ezt írja rá a fenti kék gombra
 function updatePendingBadge() {
     const count = Object.keys(pendingChanges).length; // Megszámolja hány sor (termék) módosult az egerészéstől
@@ -881,6 +925,11 @@ function fullRender(adatok) {
                         <!-- Csak Az "ADMIN" nevű szerepkörhöz íródik hozzá, különben le van szedve CSS el a lapról ha Te "USER" vagy-->
                         <div class="card-actions admin-only">
                             <button class="btn-action btn-minus" onclick="event.stopPropagation(); modifyStock('${t.cikkszam}', -1)"><i class="ph-bold ph-minus"></i></button>
+                            <input type="number" class="manual-stock-input" value="${t.db}" 
+                                   onclick="event.stopPropagation()" 
+                                   oninput="setManualStock('${t.cikkszam}', this.value)"
+                                   onkeydown="if(event.key==='Enter') this.blur()"
+                                   inputmode="numeric">
                             <button class="btn-action btn-plus" onclick="event.stopPropagation(); modifyStock('${t.cikkszam}', 1)"><i class="ph-bold ph-plus"></i></button>
                         </div>
                     </div>
