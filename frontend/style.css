@@ -1460,3 +1460,53 @@ $newStyles
         font-size: 1rem;
     }
 }
+
+/* --- MANUÁLIS KÉSZLET MÓDOSÍTÁS (HARMÓNIKUS DIZÁJN) --- */
+.manual-stock-input {
+    width: 60px;
+    height: 34px;
+    background: rgba(0, 243, 255, 0.05); /* Halvány neon-kék háttér alapból is */
+    border: 1px solid rgba(255, 255, 255, 0.1); 
+    border-radius: 6px;
+    color: rgba(255, 255, 255, 0.6); 
+    text-align: center;
+    font-family: 'Outfit', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 5px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    outline: none;
+    -moz-appearance: textfield;
+    touch-action: manipulation;
+}
+
+.manual-stock-input::-webkit-outer-spin-button,
+.manual-stock-input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.manual-stock-input:focus {
+    border-color: var(--neon-cyan);
+    background: rgba(0, 243, 255, 0.15); /* Fókuszkor kicsit erősebb fény */
+    color: var(--neon-cyan);
+    box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+    transform: scale(1.05);
+}
+
+.manual-stock-input::placeholder {
+    color: rgba(255, 255, 255, 0.3);
+    font-weight: 400;
+}
+
+/* Nagyítás elleni védelem a gombokon is */
+.btn-action {
+    touch-action: manipulation !important;
+}
+
+@media (max-width: 768px) {
+    .manual-stock-input {
+        width: 55px;
+        font-size: 1rem;
+    }
+}
