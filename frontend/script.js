@@ -934,7 +934,7 @@ function fullRender(adatok) {
                         <!-- Csak Az "ADMIN" nevű szerepkörhöz íródik hozzá, különben le van szedve CSS el a lapról ha Te "USER" vagy-->
                         <div class="card-actions admin-only">
                             <button class="btn-action btn-minus" onclick="event.stopPropagation(); modifyStock('${t.cikkszam}', -1)"><i class="ph-bold ph-minus"></i></button>
-                            <input type="number" class="manual-stock-input" placeholder="${t.db}"
+                            <input type="number" class="manual-stock-input"
                                    onclick="event.stopPropagation()" 
                                    oninput="setManualStock('${t.cikkszam}', this.value)"
                                    onkeydown="if(event.key==='Enter') this.blur()"
