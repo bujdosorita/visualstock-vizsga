@@ -3,5 +3,8 @@
   "version": "29.0.0",
   "dependencies": {
     "@supabase/supabase-js": "^2.99.1"
+  },
+  "devDependencies": {
+    "jest": "^30.3.0"
   }
 }

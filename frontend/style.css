@@ -1,36 +1,36 @@
-/* --- VISUALSTOCK NEON EDITION - Stílusbeállítások --- */
+﻿/* --- VISUALSTOCK NEON EDITION - StĂ­lusbeĂˇllĂ­tĂˇsok --- */
 
-/* --- SZÍNPALETTA ÉS GLOBÁLIS VÁLTOZÓK --- */
+/* --- SZĂŤNPALETTA Ă‰S GLOBĂLIS VĂLTOZĂ“K --- */
 :root {
-    --bg-dark: #050510; /* Sötét háttérszín */
-    --card-bg: rgba(15, 23, 42, 0.6); /* Kártyák áttetsző háttere */
-    --card-border: rgba(255, 255, 255, 0.08); /* Kártyák finom kerete */
-    --card-hover: rgba(30, 41, 59, 0.8); /* Kártya háttere rámutatáskor */
+    --bg-dark: #050510; /* SĂ¶tĂ©t hĂˇttĂ©rszĂ­n */
+    --card-bg: rgba(15, 23, 42, 0.6); /* KĂˇrtyĂˇk ĂˇttetszĹ‘ hĂˇttere */
+    --card-border: rgba(255, 255, 255, 0.08); /* KĂˇrtyĂˇk finom kerete */
+    --card-hover: rgba(30, 41, 59, 0.8); /* KĂˇrtya hĂˇttere rĂˇmutatĂˇskor */
 
-    /* Prémium Neon Akcentusok (Cyberpunk stílus) */
-    --neon-cyan: #00f3ff; /* Elsődleges cián neon */
-    --neon-blue: #3b82f6; /* Mélykék neon */
-    --neon-indigo: #6366f1; /* Indigó lila */
-    --neon-purple: #818cf8; /* Világoslila */
-    --neon-emerald: #10b981; /* Smaragd zöld (Sikeres műveletek) */
+    /* PrĂ©mium Neon Akcentusok (Cyberpunk stĂ­lus) */
+    --neon-cyan: #00f3ff; /* ElsĹ‘dleges ciĂˇn neon */
+    --neon-blue: #3b82f6; /* MĂ©lykĂ©k neon */
+    --neon-indigo: #6366f1; /* IndigĂł lila */
+    --neon-purple: #818cf8; /* VilĂˇgoslila */
+    --neon-emerald: #10b981; /* Smaragd zĂ¶ld (Sikeres mĹ±veletek) */
 
-    /* Általános dekorációs változók */
+    /* ĂltalĂˇnos dekorĂˇciĂłs vĂˇltozĂłk */
     --accent-primary: var(--neon-cyan);
     --accent-secondary: var(--neon-blue);
     --accent-gradient: linear-gradient(135deg, var(--neon-blue), var(--neon-indigo));
     --accent-glow: rgba(0, 243, 255, 0.2);
 
-    /* Szövegszínek */
+    /* SzĂ¶vegszĂ­nek */
     --text-main: #f8fafc;
     --text-muted: #94a3b8;
 
-    /* Készlet jelző színek (Szigorú funkcionális színek) */
-    --stock-green: #10b981; /* Rendben lévő készlet */
-    --stock-yellow: #f59e0b; /* Alacsony készlet */
-    --stock-red: #ef4444; /* Kritikus készlet / Elfogyott */
+    /* KĂ©szlet jelzĹ‘ szĂ­nek (SzigorĂş funkcionĂˇlis szĂ­nek) */
+    --stock-green: #10b981; /* Rendben lĂ©vĹ‘ kĂ©szlet */
+    --stock-yellow: #f59e0b; /* Alacsony kĂ©szlet */
+    --stock-red: #ef4444; /* Kritikus kĂ©szlet / Elfogyott */
 
     --border-radius: 20px;
-    --glass-blur: 15px; /* Üveghatás (glassmorphism) erőssége */
+    --glass-blur: 15px; /* ĂśveghatĂˇs (glassmorphism) erĹ‘ssĂ©ge */
 }
 
 body {
@@ -44,7 +44,7 @@ body {
     min-height: 100vh;
 }
 
-/* --- CYBER HÁTTÉR ÉS ANIMÁLT BLOBS --- */
+/* --- CYBER HĂTTĂ‰R Ă‰S ANIMĂLT BLOBS --- */
 .bg-blobs {
     position: fixed;
     top: 0;
@@ -61,7 +61,7 @@ body {
     display: none;
 }
 
-/* Szemcsés textúra a háttéren az organikusabb hatásért */
+/* SzemcsĂ©s textĂşra a hĂˇttĂ©ren az organikusabb hatĂˇsĂ©rt */
 .bg-blobs::after {
     content: '';
     position: absolute;
@@ -119,10 +119,10 @@ body {
 /* Background Ambient Glow REMOVED/UPDATED in body */
 .app-background {
     display: none;
-    /* Kikapcsoljuk a régi sötét hátteret */
+    /* Kikapcsoljuk a rĂ©gi sĂ¶tĂ©t hĂˇtteret */
 }
 
-/* --- FEJLÉC (Navigation & Brand) --- */
+/* --- FEJLĂ‰C (Navigation & Brand) --- */
 header {
     background: rgba(5, 5, 16, 0.7);
     backdrop-filter: blur(12px);
@@ -242,7 +242,7 @@ header {
     box-shadow: 0 0 8px var(--neon-cyan);
 }
 
-/* Digitális óra stílusa */
+/* DigitĂˇlis Ăłra stĂ­lusa */
 .clock-badge {
     color: var(--neon-blue);
     font-family: monospace;
@@ -384,7 +384,7 @@ header {
     font-size: 1.1rem;
 }
 
-/* --- IRÁNYÍTÓPULT (Dashboard) RENDSZER --- */
+/* --- IRĂNYĂŤTĂ“PULT (Dashboard) RENDSZER --- */
 .dashboard-container {
     max-width: 1200px;
     margin: 40px auto;
@@ -427,7 +427,7 @@ header {
     margin-top: 10px;
 }
 
-/* Statisztikai kártyák elrendezése (3 oszlop) */
+/* Statisztikai kĂˇrtyĂˇk elrendezĂ©se (3 oszlop) */
 .stats-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -441,7 +441,7 @@ header {
     }
 }
 
-/* Statisztikai kártya alapstílusa */
+/* Statisztikai kĂˇrtya alapstĂ­lusa */
 .stat-card {
     background: var(--card-bg);
     backdrop-filter: blur(var(--glass-blur));
@@ -596,7 +596,7 @@ header {
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* --- TERMÉK RÁCS (Grid) ÉS KÁRTYÁK --- */
+/* --- TERMĂ‰K RĂCS (Grid) Ă‰S KĂRTYĂK --- */
 .grid-container {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 320px));
@@ -607,9 +607,9 @@ header {
     justify-content: center;
 }
 
-/* --- KÁRTYA MEGFORDÍTÓ (Flip) RENDSZER --- */
+/* --- KĂRTYA MEGFORDĂŤTĂ“ (Flip) RENDSZER --- */
 .card-container {
-    perspective: 1000px; /* Térhatás mélysége */
+    perspective: 1000px; /* TĂ©rhatĂˇs mĂ©lysĂ©ge */
     height: 300px;
     cursor: pointer;
     width: 100%;
@@ -751,7 +751,7 @@ header {
     white-space: nowrap;
 }
 
-/* Készlet adatok - Ez az egyetlen hely, ahol a piros/sárga/zöld színeket használjuk */
+/* KĂ©szlet adatok - Ez az egyetlen hely, ahol a piros/sĂˇrga/zĂ¶ld szĂ­neket hasznĂˇljuk */
 .stock-status {
     margin: 15px 0;
 }
@@ -803,7 +803,7 @@ header {
     opacity: 0.6;
 }
 
-/* Készlet színek - Állapotok szerinti színezés */
+/* KĂ©szlet szĂ­nek - Ăllapotok szerinti szĂ­nezĂ©s */
 .stock-high {
     background-color: var(--stock-green);
     color: var(--stock-green);
@@ -835,7 +835,7 @@ header {
 }
 
 
-/* Kártya műveletek (Admin gombok) */
+/* KĂˇrtya mĹ±veletek (Admin gombok) */
 .card-actions {
     display: flex;
     justify-content: flex-end;
@@ -888,7 +888,7 @@ header {
     box-shadow: 0 6px 15px rgba(77, 77, 255, 0.5);
 }
 
-/* --- TERMÉKKÁRTYA HÁTOLDALA --- */
+/* --- TERMĂ‰KKĂRTYA HĂTOLDALA --- */
 .back-header {
     display: flex;
     align-items: center;
@@ -932,7 +932,7 @@ header {
     font-weight: 500;
 }
 
-/* --- TERMÉK KÉPEK STÍLUSA --- */
+/* --- TERMĂ‰K KĂ‰PEK STĂŤLUSA --- */
 .product-image-container {
     width: 100%;
     height: 100%;
@@ -971,7 +971,7 @@ header {
 
 
 
-/* --- BELÉPÉSI ANIMÁCIÓK --- */
+/* --- BELĂ‰PĂ‰SI ANIMĂCIĂ“K --- */
 .card-container {
     opacity: 0;
     transform: translateY(20px);
@@ -1043,9 +1043,9 @@ header {
     }
 }
 
-/* --- MOBIL NÉZET BEÁLLÍTÁSAI --- */
+/* --- MOBIL NĂ‰ZET BEĂLLĂŤTĂSAI --- */
 
-/* --- LÁBLÉC (Footer) --- */
+/* --- LĂBLĂ‰C (Footer) --- */
 .app-footer {
     margin-top: 50px;
     padding: 30px 20px;
@@ -1098,7 +1098,7 @@ header {
     }
 }
 
-/* --- BEJELENTKEZÉSI FELÜLET (Login) --- */
+/* --- BEJELENTKEZĂ‰SI FELĂśLET (Login) --- */
 .login-overlay {
     position: fixed;
     top: 0;
@@ -1260,12 +1260,12 @@ header {
     letter-spacing: 0.5px;
 }
 
-/* --- ADMINISZTRÁCIÓS FELÜLET VEZÉRLŐI --- */
+/* --- ADMINISZTRĂCIĂ“S FELĂśLET VEZĂ‰RLĹI --- */
 .admin-only {
     display: none !important;
 }
 
-body.is-admin .admin-only {
+body.role-admin .admin-only, body.role-editor .admin-only {
     display: flex !important;
 }
 
@@ -1349,7 +1349,7 @@ body.is-admin .admin-only {
 button:active {
     transform: scale(0.95);
 }
-/* --- MOBIL OPTIMALIZ�L�S (Header & Layout) --- */
+/* --- MOBIL OPTIMALIZÁLÁS (Header & Layout) --- */
 @media (max-width: 768px) {
     header {
         width: 100% !important;
@@ -1411,7 +1411,7 @@ button:active {
 }
 $newStyles
 
-/* --- MANUÁLIS KÉSZLET MÓDOSÍTÁS (HARMÓNIKUS DIZÁJN) --- */
+/* --- MANUĂLIS KĂ‰SZLET MĂ“DOSĂŤTĂS (HARMĂ“NIKUS DIZĂJN) --- */
 .manual-stock-input {
     width: 60px;
     height: 34px;
@@ -1449,7 +1449,7 @@ $newStyles
     font-weight: 400;
 }
 
-/* Nagyítás elleni védelem a gombokon is */
+/* NagyĂ­tĂˇs elleni vĂ©delem a gombokon is */
 .btn-action {
     touch-action: manipulation !important;
 }
@@ -1461,11 +1461,11 @@ $newStyles
     }
 }
 
-/* --- MANUÁLIS KÉSZLET MÓDOSÍTÁS (HARMÓNIKUS DIZÁJN) --- */
+/* --- MANUĂLIS KĂ‰SZLET MĂ“DOSĂŤTĂS (HARMĂ“NIKUS DIZĂJN) --- */
 .manual-stock-input {
     width: 60px;
     height: 34px;
-    background: rgba(0, 243, 255, 0.05); /* Halvány neon-kék háttér alapból is */
+    background: rgba(0, 243, 255, 0.05); /* HalvĂˇny neon-kĂ©k hĂˇttĂ©r alapbĂłl is */
     border: 1px solid rgba(255, 255, 255, 0.1); 
     border-radius: 6px;
     color: rgba(255, 255, 255, 0.6); 
@@ -1488,7 +1488,7 @@ $newStyles
 
 .manual-stock-input:focus {
     border-color: var(--neon-cyan);
-    background: rgba(0, 243, 255, 0.15); /* Fókuszkor kicsit erősebb fény */
+    background: rgba(0, 243, 255, 0.15); /* FĂłkuszkor kicsit erĹ‘sebb fĂ©ny */
     color: var(--neon-cyan);
     box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
     transform: scale(1.05);
@@ -1499,7 +1499,7 @@ $newStyles
     font-weight: 400;
 }
 
-/* Nagyítás elleni védelem a gombokon is */
+/* NagyĂ­tĂˇs elleni vĂ©delem a gombokon is */
 .btn-action {
     touch-action: manipulation !important;
 }
@@ -1509,4 +1509,63 @@ $newStyles
         width: 55px;
         font-size: 1rem;
     }
+}
+
+/* =========================================================================
+   12. NAPLÓ (ELŐZMÉNYEK) NÉZET
+========================================================================= */
+.history-table-container {
+    width: 100%;
+    overflow-x: auto;
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px;
+    color: var(--text-color);
+}
+
+.history-table th {
+    background: rgba(30, 41, 59, 0.8);
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    color: var(--neon-cyan);
+    border-bottom: 2px solid var(--border-color);
+    position: sticky;
+    top: 0;
+}
+
+.history-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.history-table tr:hover {
+    background: rgba(30, 41, 59, 0.5);
+}
+
+.history-table tr:last-child td {
+    border-bottom: none;
+}
+
+.qty-change {
+    font-family: monospace;
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.btn-history {
+    background: linear-gradient(135deg, rgba(8, 145, 178, 0.8), rgba(13, 148, 136, 0.8)) !important;
+    border-color: var(--neon-cyan) !important;
+    color: white !important;
+}
+
+.btn-history:hover {
+    box-shadow: 0 0 15px rgba(34, 211, 238, 0.4);
 }

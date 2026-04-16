@@ -9,12 +9,13 @@ A **VisualStock** egy modern, **Neon/Cyberpunk** stílusú raktárkészlet-kezel
 
 ---
 
-## ✨ Legújabb Funkciók (v35.0)
+## ✨ Legújabb Funkciók (v36.0 - RBAC kiadás)
 
-- [x] **Irányítópult (Dashboard)**: Bejelentkezés után egy statisztikai áttekintő fogad (Összes termék, Kritikus készlet, Kiemelt kategória).
+- [x] **Irányítópult (Dashboard)**: Szerepkörfüggő funkciókkal bővített vezérlőpult statisztikákkal.
 - [x] **Kiberbiztonság (RLS & Hashing)**: A jelszavak SHA-256 algoritmussal titkosítottak, az adatbázis megóvásáról pedig a Supabase Row Level Security (RLS) gondoskodik.
-- [x] **Adminisztrátori Mód & Saját UI Ablakok**: Kizárólag az adminok módosíthatják a készletet egy egyedi, Cyberpunk stílusú megerősítő panellel.
-- [x] **Tesztelői (QA) Naplózás**: Biztonsági folyamatmegszakítások (pl. TC-03, TC-04) rögzítése a fejlesztői konzolban.
+- [x] **Szerepkör alapú hozzáférés (RBAC)**: Háromszintű jogosultságkezelés (Admin, Editor, Reader) biztosítja az adatvédelmet.
+- [x] **Módosítási Napló (Audit Trail)**: Adminisztrátorok számára elérhető vizuális módosítási előzmény-napló.
+- [x] **Tesztelői (QA) Védelmi Rendszer**: Tranzakciós határérték védelem (TC-03) és folyamatmegszakítás (TC-04).
 - [x] **Biztonságos Regisztráció**: E-mail alapú fiók létrehozása. Újbóli megnyitáskor automatikus mezőürítés és jelszó-elrejtés.
 - [x] **ERP Szinkron Jelzés**: Élő visszajelzés az utolsó adatszinkronizáció időpontjáról.
 - [x] **Okos Termékfotók**: Automatikus képkeresés és intelligens neon placeholder rendszer.
@@ -53,25 +54,30 @@ Ennek értelmében a webes felületen (VisualStock) szándékosan **nincs lehet�
 
 ## 🔐 Hozzáférés és Jogosultságok
 
-A biztonság érdekében megszűnt az automatikus admin belépési kód! 
+A rendszer három különböző szintű hozzáférést biztosít (RBAC - Role-Based Access Control). Regisztrációkor mindenki automatikusan "Reader" szerepkört kap.
 
-| Szerepkör | Létrehozás Módja | Jogosultság |
+| Szerepkör | Hozzáférés / Feladatkör | Létrehozás Módja |
 |:---:|:---:|:---:|
-| **User (Alapfok)** | Szabad regisztráció a weblapon | Csak Olvasás (Böngészés) |
-| **Admin** | Supabase `felhasznalok` táblában a `role` mező `admin`-ra állításával | Teljes (Készlet módosítás, Szinkron) |
+| **Reader (Olvasó)** | Csak olvashatja a statisztikákat és a készletet. | Automatikus a regisztráció után. |
+| **Editor (Szerkesztő)** | Készletszintet is módosíthat (plusz/mínusz gombokkal). | Manuális adatbázis (SQL) szintű emelés (`role='editor'`). |
+| **Admin (Rendszergazda)** | Készletmódosítás, szinkronizáció + Módosítási Napló (Audit) megtekintése. | Manuális adatbázis (SQL) szintű emelés (`role='admin'`). |
 
 ---
 
 ## 🔐 Teszteléshez és Vizsgáztatáshoz (Demo Accounts)
 
-A funkciók (TC-01, TC-02, TC-03, TC-04) kipróbálásához az alábbi tesztfiókok állnak rendelkezésre:
+A vizsgabizottság számára dedikált próbafiókok az új RBAC (Role-Based Access Control) rendszer teszteléséhez:
 
-**Adminisztrátori hozzáférés (Teljes jogosultság, raktárkészlet módosítása):**
-* Felhasználónév: `vizsga_admin`
+**1. Adminisztrátor (Teljes kontroll)** - Látja a naplót, tud szinkronizálni és raktárt kezelni.
+* E-mail cím / Felhasználónév: `vizsga_admin`
 * Jelszó: `Vizsga2026!`
 
-**Felhasználói hozzáférés (Csak megtekintés, rejtett gombok):**
-* Felhasználónév: `vizsga_user`
+**2. Készletkezelő (Szerkesztő)** - Csak a készletet tudja módosítani (Nincs Napló).
+* E-mail cím / Felhasználónév: `vizsga_editor`
+* Jelszó: `Vizsga2026!`
+
+**3. Megfigyelő (Olvasó)** - Csak olvashat, minden manipulációs gomb rejtve.
+* E-mail cím / Felhasználónév: `vizsga_reader`
 * Jelszó: `Vizsga2026!`
 
 ---
@@ -104,4 +110,4 @@ Az alkalmazás teljes mértékben felhőalapú (Supabase backend), így a futtat
 
 ---
 
-© 2026 VisualStock Premium - V35.0 (QA & UI Update)
+© 2026 VisualStock Premium - V36.0 (RBAC & Audit Trail Update)

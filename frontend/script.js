@@ -1,47 +1,44 @@
 // =========================================================================
 // 1. BACKEND API KAPCSOLAT
 // =========================================================================
-// Ezt a szerveroldali API-t hívjuk meg (Edge Function) a Supabase közvetlen elérése helyett
+// Közvetlen Supabase elérés helyett biztonságos Edge Function réteget használunk
 const API_URL = "https://ktmmhgmfzfqbwianrsbx.supabase.co/functions/v1";
 
 // =========================================================================
-// 2. GLOBÁLIS VÁLTOZÓK - Az alkalmazás "memóriája"
+// 2. GLOBÁLIS ÁLLAPOTTÉR (State)
 // =========================================================================
-// Ezeket a változókat az egész fájlban használjuk, ide mentünk mindent, 
-// amit a program futása közben észben kell tartani.
-const appDiv = document.getElementById('app'); // A HTML fájlunk <div id="app"> eleme, ide fogjuk bepakolni a termékkártyákat
-const searchInput = document.getElementById('searchInput'); // A keresőmező HTML eleme
-let termekek = []; // Egy üres lista (tömb), ebbe töltjük le majd a termékeket az adatbázisból
-let aktualisSzuro = 'all'; // Eltároljuk, hogy épp melyik kategória gombra kattintott a felhasználó
-let utolsoModositas = 0; // Egy szám (időbélyeg), ami megmondja mikor módosítottunk utoljára
-let cardTimers = {}; // Ha megfordítasz egy kártyát, itt számoljuk vissza az 5 másodpercet a visszafordításig
-let lastSyncTime = null; // Ide mentjük el, hogy mikor frissítettük utoljára az adatokat
+// Az alkalmazás kliensoldali memóriája és vezérlő változói
+const appDiv = document.getElementById('app'); 
+const searchInput = document.getElementById('searchInput'); 
+let termekek = []; // A szerverről szinkronizált termékadatok kliensoldali gyorsítótára
+let aktualisSzuro = 'all'; // Az aktív kategóriaszűrő (view state)
+let utolsoModositas = 0; // Utolsó felhasználói interakció időbélyege (versenyhelyzet / polling conflict elkerülésére)
+let cardTimers = {}; // Animáció vezérlők (kártya rotáció timeout referenciái)
+let lastSyncTime = null; // Utolsó sikeres adatszinkronizáció időbélyege
 
 
 // =========================================================================
-// 3. BEJELENTKEZÉS ÉS JOGOSULTSÁGOK
+// 3. JOGOSULTSÁGKEZELÉS (Auth & RBAC)
 // =========================================================================
-let currentUser = null; // Ide mentjük el, hogy éppen ki van bejelentkezve (pl. a neve és hogy 'admin' vagy 'user')
-let pendingChanges = {}; // Ide gyűjtjük azokat a beírt raktárkészlet módosításokat, amiket még nem mentettünk el a felhőbe
+let currentUser = null; // Aktuális session adatok (id, név, role)
+let pendingChanges = {}; // Kliensoldali batch tranzakciós verem (mentésre váró módosítások)
 
-// --- Jelszó küldése a Backend-nek (Titkosítás ott történik) ---
-// A jelszót most már nem a frontend kódolja, hanem az új biztonságos Backend szerver.
+// --- Hitelesítési Logika ---
+// A jelszó titkosítása és validálása a biztonság érdekében a Backend rétegen (Edge Function) történik.
 
-// --- Bejelentkezési folyamat gépezete ---
 async function handleLogin() {
-    // 1. Kiolvassuk miket írt be a felhasználó a mezőkbe
     const user = document.getElementById('username').value.trim();
     const pass = document.getElementById('loginPassword').value.trim();
     const errorEl = document.getElementById('loginError');
     
-    // 2. Ellenőrizzük, hogy egyáltalán beírt-e valamit
+    // Alapvető kliensoldali input validáció
     if (!user || !pass) {
         errorEl.innerText = "Kérlek tölts ki minden mezőt!";
-        return; // Ha üres, itt megállítjuk a folyamatot
+        return; 
     }
 
     try {
-        // 3. API hívás a Backendünk felé (Bejelentkezés)
+        // Hitelesítési API kérés indítása (Auth)
         const response = await fetch(`${API_URL}/login`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -50,11 +47,11 @@ async function handleLogin() {
         
         const result = await response.json();
 
-        // 4. Ha hiba van, vagy nincs ilyen ember...
         if (!response.ok) {
-            errorEl.innerText = result.error || "Hibás adatok vagy jelszó!"; // Ezt schliemann (biztonsági) okokból nem részletezzük, hogy melyik volt a rossz
+            // Biztonsági okokból szándékosan általános hibaüzenet (Schliemann elv)
+            errorEl.innerText = result.error || "Hibás adatok vagy jelszó!"; 
         } else {
-            // 5. Ha minden jó, hívjuk meg a loginSuccess-t (Beengedjük a rendszerbe)
+            // Sikeres hitelesítés kezelése
             loginSuccess({ name: result.user.username, role: result.user.role });
         }
     } catch (e) {
@@ -63,15 +60,14 @@ async function handleLogin() {
     }
 }
 
-// --- Új felhasználó regisztrációja (Fiók létrehozása) ---
+// --- Regisztrációs Logika ---
 async function handleRegister() {
-    // Kiolvassuk az input mezőket
     const user = document.getElementById('regUsername').value.trim();
     const email = document.getElementById('regEmail').value.trim();
     const pass = document.getElementById('regPassword').value.trim();
     const errorEl = document.getElementById('regError');
     
-    // Alapvető hibakeresés (minden ki van-e töltve, van-e @ az emailben)
+    // Kliensoldali input validáció
     if (!user || !email || !pass) {
         errorEl.innerText = "Kérlek tölts ki minden mezőt!"; return;
     }
@@ -79,11 +75,11 @@ async function handleRegister() {
         errorEl.innerText = "Érvénytelen e-mail cím!"; return;
     }
     if (user.toLowerCase() === 'admin') {
-        errorEl.innerText = "Az 'admin' név foglalt!"; return;
+        errorEl.innerText = "Az 'admin' név foglalt/védett!"; return;
     }
 
     try {
-        // Bepakoljuk (insert) az új sort az adatbázisba a Backend API-n keresztül
+        // Regisztrációs payload beküldése az Edge Function-nek
         const response = await fetch(`${API_URL}/register`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -94,13 +90,12 @@ async function handleRegister() {
 
         if (!response.ok) {
             console.error("Regisztrációs API hiba:", result);
-            // Kód '23505' azt jelenti a SQL-ben, hogy "Ez az adat már létezik" 
+            // Kód '23505': UNIQUE constraint violation a Postgres SQL-ben 
             if (result.code === '23505') errorEl.innerText = "A név vagy e-mail már létezik!";
             else errorEl.innerText = "Szerver hiba: " + (result.error || "Ismeretlen hiba");
         } else {
-            // Sikerült!
             alert("Sikeres regisztráció! Most már bejelentkezhetsz.");
-            toggleLoginView('login'); // Visszavisszük a belépés nézetre
+            toggleLoginView('login'); 
         }
     } catch (e) {
         console.error("Regisztrációs kliens hiba:", e);
@@ -109,24 +104,23 @@ async function handleRegister() {
 }
 
 // =========================================================================
-// 4. FELHASZNÁLÓI FELÜLET (UI) SEGÉDFÜGGVÉNYEK ÉS LÁTVÁNYTERV
+// 4. FELHASZNÁLÓI FELÜLET (UI) VEZÉRLŐK
 // =========================================================================
 
-// Jelszó elrejtése vagy mutatása (szemecske ikon lenyomása)
+// Jelszómező vizuális kapcsolója (plaintext / rejtett)
 function togglePasswordVisibility(inputId) {
     const input = document.getElementById(inputId);
     const icon = input.parentElement.querySelector('.password-toggle');
-    // Ha eddig pöttyöket mutatott (password), akkor állítsuk szövegre (text) és fordítva
     if (input.type === 'password') {
         input.type = 'text';
-        icon.classList.replace('ph-eye', 'ph-eye-slash'); // Cseréljük ki az ikont
+        icon.classList.replace('ph-eye', 'ph-eye-slash'); 
     } else {
         input.type = 'password';
         icon.classList.replace('ph-eye-slash', 'ph-eye');
     }
 }
 
-// Váltakozás a Belépés és a Regisztráció formok között (eltüntetjük az egyiket, mutatjuk a másikat)
+// Interfész váltó: Login / Regisztráció nézet
 function toggleLoginView(view) {
     const loginForm = document.getElementById('loginFormView');
     const regForm = document.getElementById('regFormView');
@@ -134,18 +128,17 @@ function toggleLoginView(view) {
     const regError = document.getElementById('regError');
 
     if (view === 'reg') {
-        loginForm.style.display = 'none'; // Rejtsd el a belépést
-        regForm.style.display = 'block';  // Mutasd a regisztrációt
+        loginForm.style.display = 'none'; 
+        regForm.style.display = 'block';  
         regError.innerText = "";
         
-        // Biztonsági okokból kiürítjük a regisztrációs mezőket minden megnyitáskor
+        // Memória ürítése váltáskor biztonsági okokból
         const fields = ['regUsername', 'regEmail', 'regPassword'];
         fields.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.value = "";
         });
         
-        // Jelszó mező visszaállítása rejtettre, ha véletlen látható maradt
         const passEl = document.getElementById('regPassword');
         if (passEl) {
             passEl.type = 'password';
@@ -153,53 +146,44 @@ function toggleLoginView(view) {
             if (icon) icon.classList.replace('ph-eye-slash', 'ph-eye');
         }
     } else {
-        loginForm.style.display = 'block'; // Mutasd a belépést
-        regForm.style.display = 'none';    // Rejtsd el a regisztrációt
+        loginForm.style.display = 'block'; 
+        regForm.style.display = 'none';    
         loginError.innerText = "";
     }
 }
 
-// Ezt a függvényt hívjuk meg, ha a szerver visszaigazolta a jó jelszót
+// Sikeres hitelesítés és munkafolyamat indítása
 function loginSuccess(session) {
     console.log("Sikeres belépés:", session.name);
     
-    // Globális változóba mentjük az adatait
+    // Auth Session rögzítése persistencia (F5 újratöltés) biztosításához
     currentUser = session;
-    
-    // Elmentjük a böngésző memóriájába (localStorage) is, hogy oldalfrissítés után se kelljen újra belépni
     const sessionWithTime = { ...session, sessionStart: Date.now() };
     localStorage.setItem('vs_session', JSON.stringify(sessionWithTime));
     
-    // Eltüntetjük a fekete bejelentkező képernyőt (loginOverlay-t)
+    // UI layout módosítása: bejelentkező overlay elrejtése
     document.getElementById('loginOverlay').style.display = 'none';
-    
-    // Kiírjuk a fejlécbe a bal felső sarokba a nevét
     document.getElementById('userNameDisplay').innerText = session.name;
-    appDiv.innerHTML = ""; // Kitöröljük a régi adatokat az app területéről
+    appDiv.innerHTML = ""; 
     
-    // HA ADMIN A FELHASZNÁLÓ:
-    if (session.role === 'admin') {
-        // Rátesszük az egész oldalra (body) az "is-admin" címkét (css classt).
-        // A CSS-ben meg van írva, hogy ha az oldal body-ja "is-admin", akkor mutassa meg
-        // a +/- gombokat, meg a szinkronizáló mentés gombokat. Ez a Vizuális rész!
-        document.body.classList.add('is-admin');
-    } else {
-        document.body.classList.remove('is-admin');
-    }
+    // DOM-szintű RBAC felülírás (Role-based UI access)
+    // CSS namespace szabályozza a komponensek (.admin-only) láthatóságát
+    document.body.classList.remove('role-admin', 'role-editor', 'role-reader');
+    document.body.classList.add('role-' + session.role);
     
-    // Végül: Betöltjük a termékeket a szerverről
+    // Kezdőállapot szinkronizálása a szerverről
     fetchProducts(true); 
 }
 
-// Kijelentkezés megnyomása
+// Munkamenet lezárása (Logout)
 function handleLogout() {
-    currentUser = null; // Kitöröljük ki van belépve
-    localStorage.removeItem('vs_session'); // Kitöröljük a böngésző memóriájából is
-    document.body.classList.remove('is-admin'); // Elvesszük a gombokat az oldaldról
-    document.getElementById('loginOverlay').style.display = 'flex'; // Visszahozzuk a bejelentkező képernyőt
+    currentUser = null; 
+    localStorage.removeItem('vs_session'); // Cache ürítése
+    document.body.classList.remove('role-admin', 'role-editor', 'role-reader'); // Jogosultságok megvonása az interfésztől
+    document.getElementById('loginOverlay').style.display = 'flex'; 
     document.getElementById('userNameDisplay').innerText = "Belépés";
     
-    // Letörlünk minden korábban beírt adatot a mezőkből
+    // Input mezők scrubbolása (Szenzitív adatok memória-mentesítése)
     const fields = ['username', 'loginPassword', 'regUsername', 'regEmail', 'regPassword'];
     fields.forEach(id => {
         const el = document.getElementById(id);
@@ -213,43 +197,39 @@ function handleLogout() {
         }
     });
     
-    // Kitöröljük a hibaüzeneteket és az app tartalmát
+    // UI state visszaállítása és a kliensoldali tranzakció-verem (batch) törlése
     document.getElementById('loginError').innerText = "";
     document.getElementById('regError').innerText = "";
     appDiv.innerHTML = ""; 
-    pendingChanges = {}; // Megsemmisítjük a be nem küldött mentéseket
+    pendingChanges = {}; 
     updatePendingBadge();
 }
 
-// Oldal újratöltésekor (frissítéskor) megkérdezi, hogy vagyunk-e már belépve
+// Session újraélesztés az oldal újratöltésekor (Persistence Check)
 function checkSession() {
-    console.log("Munkamenet ellenőrzése...");
     try {
-        const saved = localStorage.getItem('vs_session'); // Megnézzük a memóriát
+        const saved = localStorage.getItem('vs_session'); 
         if (saved) {
-            console.log("Mentett munkamenet megtalálva:", JSON.parse(saved).name);
-            loginSuccess(JSON.parse(saved)); // Ha van arc, beléptetjük
+            loginSuccess(JSON.parse(saved)); 
         } else {
-            console.log("Nincs mentett munkamenet, belépő megjelenítése.");
             const overlay = document.getElementById('loginOverlay');
-            if (overlay) overlay.style.display = 'flex'; // Ha nincs, kérjük a belépést
+            if (overlay) overlay.style.display = 'flex'; 
         }
     } catch (e) {
-        // Biztonsági rés: Ha valami elszáll hibával, rakjuk fel a belépő ablakot
+        // Fallback: Ha sérült a storage JSON, bekérjük újra a hitelesítést
         const overlay = document.getElementById('loginOverlay');
         if (overlay) overlay.style.display = 'flex';
     }
 }
 
-// Az óra megjelenítése fönn a fejlécben
+// UI fejléc óra rendering
 function updateClock() {
-    const now = new Date(); // Itt lekérjük a jelenlegi pontos időt a gépről
+    const now = new Date(); 
     const clockEl = document.getElementById('clock');
     if (clockEl) {
-        // Kiírjuk magyar(hu-HU) formátumban óra és perc
         clockEl.innerText = now.toLocaleTimeString('hu-HU', { hour: '2-digit', minute: '2-digit' });
     }
-    checkSecurityLimits(); // Biztonsági korlát ellenőrzése minden percben
+    checkSecurityLimits(); // Időalapú policy ellenőrzés futtatása
 }
 
 // --- Biztonsági korlát: Automatikus kijelentkezés 17:00-kor ---
@@ -285,20 +265,20 @@ function renderDashboard() {
     aktualisSzuro = 'dashboard'; // Megjegyezzük hogy itt vagyunk
     appDiv.classList.remove('grid-container'); // Mivel ez nem egy kártya-rács, levesszük a css szabályt
     
-    // Megszámoljuk hány termék van amiből nagyon kevés van (20% alatti vagy 0 db a raktárban)
+
+    // Kritikus állomány számítása: <20% lefedettség vagy készlethiány
     const lowStockItems = termekek.filter(t => {
-        let sz = t.max > 0 ? (t.db / t.max) * 100 : 0; // Kiszámoljuk a százalékot (Jelenlegi / Maximum * 100)
+        let sz = t.max > 0 ? (t.db / t.max) * 100 : 0; 
         return sz < 20 || t.db <= 0;
     });
 
-    // Statisztika számok kiszámítása
-    const totalItems = termekek.length; // Minden termék száma
-    const criticalCount = lowStockItems.length; // Kritikusak száma
-    // Itt megszámoljuk csak azt ami a "kasszaszalag" kategóriába esik
+    // Indikátor aggregációk (KPI)
+    const totalItems = termekek.length; 
+    const criticalCount = lowStockItems.length; 
     const kasszaCount = termekek.filter(t => getTermekCategory(t) === 'kasszaszalag').length;
 
-    // "Villogásmentes frissítés": Ha már eleve az Irányítópulton vagyunk, minek törölnénk le mindent?
-    // Csak átírjuk a dobozokban a számokat. Ettől gyorsabb és szebb lesz a program!
+    // VDOM-szerű optimalizált frissítés (Smooth Update Layout)
+    // A teljes újra-renderelés elkerülésével minimalizálja a reflow/repaint költségeket
     const existingDash = document.querySelector('.dashboard-container');
     if (existingDash) {
         const welcomeH2 = existingDash.querySelector('.dashboard-welcome h2');
@@ -312,12 +292,13 @@ function renderDashboard() {
         if (valCrit) valCrit.innerText = criticalCount;
         if (valKassza) valKassza.innerText = kasszaCount;
         if (valSync) valSync.innerText = lastSyncTime || '--:--:--';
-        return; // Itt kijövünk a függvényből, nem fűzi hozzá alul a HTML kódot
+        return; 
     }
 
-    // Ha még nem az irányítópulton voltunk (pl kártyákat néztünk), akkor szépen felépítjük HTML-ben az egészet:
-    document.querySelectorAll('.category-buttons button').forEach(b => b.classList.remove('active-btn')); // Letöröljük a kiemelést a gombokról
+    // Navigációs aktív státusz reset
+    document.querySelectorAll('.category-buttons button').forEach(b => b.classList.remove('active-btn')); 
 
+    // Általános HTML DOM generálás
     let html = `
         <div class="dashboard-container">
             <div class="dashboard-welcome">
@@ -355,38 +336,38 @@ function renderDashboard() {
                 <h3>Gyorsműveletek</h3>
                 <div class="quick-links">
                     <button onclick="filterCategory('all')"><i class="ph-bold ph-magnifying-glass"></i> Termékek böngészése</button>
-                    ${currentUser.role === 'admin' ? '<button onclick="simulateSync()"><i class="ph-bold ph-arrows-clockwise"></i> Adatok frissítése</button>' : ''}
+                    ${currentUser.role === 'admin' || currentUser.role === 'editor' ? '<button onclick="simulateSync()"><i class="ph-bold ph-arrows-clockwise"></i> Adatok frissítése</button>' : ''}
+                    ${currentUser.role === 'admin' ? '<button onclick="renderHistory()" class="btn-history"><i class="ph-bold ph-clock-counter-clockwise"></i> Napló</button>' : ''}
                 </div>
             </div>
         </div>
     `;
-    appDiv.innerHTML = html; // Beleírjuk a generált kódot az #app nevű fő dobozba
+    appDiv.innerHTML = html; 
 }
 
 
 // =========================================================================
-// 6. ADATBÁZIS (TERMÉKEK) LEKÉRÉSE ÉS CSERÉLÉSE
+// 6. ADATBÁZIS (TERMÉKEK) SZINKRONIZÁCIÓ (Polling)
 // =========================================================================
 
-// Ez a fő függvény, ez fut le minden 10 másodpercben, hogy letöltse az aktuális állapotot!
+// Fő adatszinkronizáló ciklus, amely meghatározott időközönként frissíti a lokális cache-t
 async function fetchProducts(showDashboard = false) {
 
-    // VÉDELEM: Ha nincs senki bejelentkezve, ne csináljon semmit a háttérben!
     if (!currentUser) return;
 
-    // Ha épp most kattintott a kolléga a mentésre (kevesebb mint 2 másodperce), 
-    // akkor ne olvassunk be az adatbázisból takarítás közben (hogy nehogy beleszóljunk a mentésébe).
+    // Optimista zárolás (Throttling): Ha friss manuális módosítás történt, 
+    // kihagyjuk a polling ciklust a felülírás megakadályozása érdekében.
     if (Date.now() - utolsoModositas < 2000) return;
     
     try {
-        // Lépés a Backend API felé: Kérem az összes adatot!
+        // API kérés az adathalmazra (Edge Function réteg felé)
         const response = await fetch(`${API_URL}/products`);
         if (!response.ok) throw new Error('Nem sikerült letölteni a termékeket az API-tól.');
         
         const result = await response.json();
         const data = result.products;
 
-        // Az adatokat "Megformogatjuk" vagyis "kipofozzuk" olyan struktúrába amit a kódunk kérni fog:
+        // Adattranszformáció: API response adatmodell átalakítása a kliens architektúrájára
         const formataltAdatok = data.map(t => ({
             cikkszam: String(t.cikkszam),
             nev: t.nev,
@@ -450,41 +431,39 @@ function handleUpdate(ujAdatok) {
 
 
 // =========================================================================
-// 7. RAKTÁR KÉSZLET MÓDOSÍTÁSA (PLUSZ ÉS MÍNUSZ GOMBOK)
+// 7. RAKTÁRKÉSZLET MÓDOSÍTÁS (DOM & Tranzakció építés)
 // =========================================================================
 
-// Amikor megnyomják a kártyán levő '+' vagy '-' gombot, ez hívódik meg
+// Relatív (+/-) készletváltoztatás a kliens cache-ben
 async function modifyStock(cikkszam, valtozas) {
-    // 1. Biztonsági Ellenőrzés FONTOS! Csak Admin matathat a készletekben
-    if (!currentUser || currentUser.role !== 'admin') return; 
+    // RBAC: Hitelesítési (Auth) és szerepkör (Authorization) ellenőrzése
+    if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'editor')) return; 
     
-    // VÉDELEM: Szólunk a frissítő motornak, hogy épp most nyúltunk a gombokhoz, álljon le!
+    // Polling zárolás / race condition elkerülése
     utolsoModositas = Date.now();
     
-    // 2. Megkeressük melyik terméket akarja épp átállítani
+    // Céltermék azonosítása az in-memory adatstruktúrában
     const termekIndex = termekek.findIndex(t => String(t.cikkszam) === String(cikkszam));
     if (termekIndex === -1) {
         console.error("Nem talalhato termek index! Cikkszam:", cikkszam);
-        return; // Ha nem találja, hagyjuk rá
+        return; 
     }
 
-    // 3. Kiszámoljuk a Matekot. 
-    // Magyarázat: játéknál is használjuk a Math.max-ot. Veszünk két értéket: a "nulla" és  a "jelenlegi db + gombnyomás (valtozas lesz +1 vagy -1)".
-    // A Math.max a kettő közül a NAGYOBBAT adja. Értsd: ha -3 lenne az eredmény, nulla lesz! Így sosem megy mínuszba a raktár.
+    // Constraint: Készlet nem lehet negatív (0-s alsó korlát)
     const ujKeszlet = Math.max(0, termekek[termekIndex].db + valtozas);
 
-    // EXTRA VIZSGA LOG: Ha mínuszba akarna menni, írjon be a konzolba egy sárga figyelmeztetést!
+    // QA Logging: TC-03 Teszt forgatókönyv lefedettsége
     if (termekek[termekIndex].db + valtozas < 0) {
         console.warn(`TC-03 Teszt: Figyelem! A készlet nem mehet nulla alá! Művelet blokkolva.`);
     }
 
-    termekek[termekIndex].db = ujKeszlet; // Mentjük az átírt értéket az ideglenes listába
+    termekek[termekIndex].db = ujKeszlet; 
     
-    // 4. "Betesszük a bevásárlókosárba" a mentési feladatot, ezt utána gombnyomásra egyszerre küldjük a szerverre (optimalizáció)
+    // Sorba állítás bulk update-hez (Batching)
     pendingChanges[cikkszam] = ujKeszlet;
-    updatePendingBadge(); // Ez frissíti a kis számot a Módosítás Mentése gomb mellett felül
+    updatePendingBadge(); 
 
-    // 5. Azonnali CÉLZOTT grafikus frissítés a kijelzőn (Ne rendereljük újra az egészet, mert az "ugrálást" okozhat kritikus nézetben)
+    // Célzott DOM frissítés újragenerálás nélkül (Performance Optimization)
     const cardEl = document.querySelector(`.card-container[data-cikkszam="${cikkszam}"]`);
     if (cardEl) {
         const t = termekek[termekIndex];
@@ -503,46 +482,41 @@ async function modifyStock(cikkszam, valtozas) {
     }
 }
 
-// --- MANUÁLIS KÉSZLET MÓDOSÍTÁS (Amikor a felhasználó maga írja be a számot) ---
-// Ez a függvény akkor fut le, ha valaki nem a +/- gombokkal kattintgat, 
-// hanem közvetlenül beír egy számot a beviteli mezőbe.
+// --- MANUÁLIS KÉSZLET MÓDOSÍTÁS (Input Mező) ---
+// Szabadkezes bevitel a raktárkészlet közvetlen felülírására
 async function setManualStock(cikkszam, ertek) {
-    // 1. Biztonsági ellenőrzés: Csak az adminisztrátorok módosíthatnak készletet
-    if (!currentUser || currentUser.role !== 'admin') return;
+    // RBAC: Jogosultság ellenőrzése
+    if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'editor')) return;
     
-    // Frissítjük az utolsó aktivitás idejét (hogy lássuk, még dolgozik valaki)
     utolsoModositas = Date.now();
 
-    // 2. Megkeressük a terméket a listánkban a cikkszáma alapján
+    // Referencia validáció a kliens cache-ben
     const termekIndex = termekek.findIndex(t => String(t.cikkszam) === String(cikkszam));
-    if (termekIndex === -1) return; // Ha valamiért nincs meg a termék, itt megállunk
+    if (termekIndex === -1) return; 
 
-    // 3. Ellenőrizzük, hogy amit beírt, az tényleg egy érvényes szám-e
+    // Típus-konverzió és adat ellenőrzés
     let ujKeszlet = parseInt(ertek);
-    if (isNaN(ujKeszlet)) return; // Ha nem szám (pl. üresen hagyta), nem csinálunk semmit
+    if (isNaN(ujKeszlet)) return; 
     
-    // 4. Szabály: A készlet nem lehet negatív (0-nál kevesebb)
+    // Zero-bound constrain vizsgálata
     if (ujKeszlet < 0) {
         ujKeszlet = 0;
         console.warn(`TC-03 Teszt: Figyelem! A készlet nem mehet nulla alá!`);
     }
 
-    // 5. Elmentjük az új számot a memóriába és a "mentésre váró" (pending) listába
+    // Tranzakciós várakozó lista (pool) frissítése
     termekek[termekIndex].db = ujKeszlet;
     pendingChanges[cikkszam] = ujKeszlet;
     
-    // Beállítjuk a mentés gombot: jelezzük rajta, hogy új módosítás történt
     updatePendingBadge();
 
-    // 6. Azonnali vizuális frissítés: Átírjuk a kártyán a szöveget és a csíkot
+    // Mutáció következményeként DOM update renderelése
     const cardEl = document.querySelector(`.card-container[data-cikkszam="${cikkszam}"]`);
     if (cardEl) {
         const t = termekek[termekIndex];
-        // Kiszámoljuk a telítettségi csík százalékát (mennyire van tele a raktár)
         let sz = t.max > 0 ? Math.round((t.db / t.max) * 100) : 0;
-        if (sz > 100) sz = 100; // 100%-nál ne legyen hosszabb a csík
+        if (sz > 100) sz = 100; 
         
-        // Színkódolás: Zöld (sok), Sárga (közepes) vagy Piros (kevés)
         let sCl = 'stock-high'; let tCl = 'text-green';
         if (sz < 40) { sCl = 'stock-med'; tCl = 'text-yellow'; }
         if (sz < 20 || t.db <= 0) { sCl = 'stock-low'; tCl = 'text-red'; }
@@ -550,60 +524,59 @@ async function setManualStock(cikkszam, ertek) {
         const qS = cardEl.querySelector('.current-qty');
         const fD = cardEl.querySelector('.progress-fill');
         
-        // Itt ténylegesen átírjuk a HTML elemek tartalmát a képernyőn
         if (qS) { qS.innerText = t.db; qS.className = `current-qty ${tCl}`; }
         if (fD) { fD.style.width = `${sz}%`; fD.className = `progress-fill ${sCl}`; }
     }
 }
 
-// Ez számolja meg hány mentetlen dolog van és ezt írja rá a fenti kék gombra
+// UI Badge frissítése a lokális (dirty) rekordok számával
 function updatePendingBadge() {
-    const count = Object.keys(pendingChanges).length; // Megszámolja hány sor (termék) módosult az egerészéstől
+    const count = Object.keys(pendingChanges).length; 
     const btn = document.getElementById('btnBulkSave');
     const badge = document.getElementById('pendingCount');
     if (btn && badge) {
         badge.innerText = count;
-        // Ha nem piszkált senki bele a gombokba, akkor le van tiltva a mentés gomb
+        // Gomb állapot menedzsment: Nincs pending = disable
         btn.disabled = count === 0; 
     }
 }
 
-// Megerősítő ablak: "Biztos el akarod menteni?!" (Kattintás a fenti Módosítás Mentése gombra)
+// Bulk tranzakció előtti megerősítő / Védelmi réteg
 function confirmBulkUpdate() {
     const count = Object.keys(pendingChanges).length;
-    if (count === 0) return; // Nincs is mit menteni!
+    if (count === 0) return; 
     
-    // Testreszabott (Cyberpunk) felugró ablak megjelenítése a natív window.confirm helyett
+    // Személyre szabott Action Modal behívása
     const overlay = document.getElementById('confirmOverlay');
     const message = document.getElementById('confirmMessage');
     const btnOk = document.getElementById('btnConfirmOk');
     const btnCancel = document.getElementById('btnConfirmCancel');
     
-    // Üzenet testreszabása
+    // Dinamikus tartalom generálás
     message.innerHTML = `Biztosan módosítani kívánja a(z) <span style="color: var(--accent-orange); font-size: 1.3rem; font-weight: bold;">${count}</span> termék adatait?`;
     
-    // Megjelenítés
     overlay.style.display = 'flex';
     
-    // Megerősítés (Igen) gomb eseménye
+    // Proceed flow
     btnOk.onclick = function() {
         overlay.style.display = 'none';
-        saveBulkChanges(); // Jöhet a feltöltés a felhőbe!
+        saveBulkChanges(); // Tranzakció indítása
     };
     
-    // Mégse gomb eseménye
+    // Cancel flow
     btnCancel.onclick = function() {
         overlay.style.display = 'none';
+        // QA Logging: TC-04 Megszakítás forgatókönyv lefedettsége
         console.warn(`TC-04 Teszt: Mentés megszakítva. A memória tartalma megmaradt (${count} db módosítás).`);
     };
 }
 
-// A módosított készletadatok (amit a pendigChanges-ben gyűjtögettünk) tényleges elküldése az Internetre
+// Aszinkron Bulk-Write hálózati művelet (Mentés Supabase felé)
 async function saveBulkChanges() {
     const btn = document.getElementById('btnBulkSave');
     const originalContent = btn.innerHTML;
-    btn.disabled = true; // Lekapcsoljuk a gombot, amíg forog a karikája, ne lehessen spammelni (nyomkodni mint egy őrült)
-    btn.innerHTML = '<i class="ph-bold ph-spinner ph-spin"></i><span>Mentés...</span>'; // Lecseréljük az ikonját a forgó izére
+    btn.disabled = true; // Lock UI network kérés alatt
+    btn.innerHTML = '<i class="ph-bold ph-spinner ph-spin"></i><span>Mentés...</span>'; 
     
     try {
         // Csomagokat csinálunk abból az adatból amit "bevásárlókosárba" tettünk
@@ -615,46 +588,49 @@ async function saveBulkChanges() {
         const response = await fetch(`${API_URL}/update-bulk`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ updates })
+            body: JSON.stringify({ 
+                updates,
+                username: currentUser.name,
+                role: currentUser.role
+            })
         });
         
         const result = await response.json();
         
+        // API válasz validálása
         if (!response.ok || !result.success) {
             console.error("Módosítási API hiba:", result.error);
             throw new Error(result.error || "Hibás szerver válasz.");
         }
         
-        // Ha idáig elért a program hiba nélkül, akkor SIKERES VOLT A MENTÉS!
+        // --- Sikeres Tranzakció ---
         console.log(`Sikeresen módosítva: ${result.count || updates.length} db termék.`);
         
-        // --- SIKERES MENTÉS UTÁN ---
-        
-        // 1. Üzenet a gombra: Mentve!
+        // UI státusz frissítése: Siker indikátor
         btn.innerHTML = '<i class="ph-bold ph-check"></i> <span>Mentve!</span>';
         btn.classList.add('save-success');
 
-        // 2. ÚJDONSÁG: Kiürítjük az összes manuális beviteli mezőt
-        // Ez jelzi a felhasználónak, hogy a beírt számok már rögzítve lettek
+        // Input reset a tranzakció lezárása utána
         document.querySelectorAll('.manual-stock-input').forEach(input => {
-            input.value = ''; // Minden ilyen mezőt üresre állítunk
+            input.value = ''; 
         });
 
-        // 3. Visszajelzés az oldal tetején (badge) eltüntetése
+        // Memória ürítése és DOM state resetelés
         pendingChanges = {}; 
         updatePendingBadge();
-        utolsoModositas = Date.now(); // Megjegyezzük, hogy mikor nyúltunk hozzá utoljára
+        utolsoModositas = Date.now(); 
         
+        // Timeout callback a UI reseteléséhez és teljes resync hez (2s delay)
         setTimeout(() => {
-            btn.innerHTML = originalContent; // Visszaáll az eredeti formájára
+            btn.innerHTML = originalContent; 
             btn.classList.remove('save-success');
             updatePendingBadge();
-            fetchProducts(); // Töltsük le rögtön a vadiúj, internetes megerősített adatot!
-        }, 2000); // 2 másodpercet várunk és utána hajtja végre (hogy látszódhasson a pipa)
+            fetchProducts(); // Automatikus kliens frissítése az adatbázis igazolt állapotára
+        }, 2000); 
         
     } catch (error) {
         console.error("Hiba tömeges mentéskor:", error);
-        alert("Hiba történt a mentés során!"); // Szólunk a usernek hogy gond van, nem mentődtek a dolgai
+        alert("Hiba történt a mentés során!"); 
         btn.disabled = false;
         btn.innerHTML = originalContent;
     }
@@ -676,31 +652,31 @@ function simulateSync() {
 
 
 // =========================================================================
-// 8. KERESÉS, SZŰRÉS ÉS KATEGÓRIÁZÁS (VIZUÁLIS KELLEMENTEK)
+// 8. KERESÉS EST SZŰRÉS (View Controllers)
 // =========================================================================
 
-// Amikor beírsz valamit a jobb fenti keresőmezőbe...
+// Élő kereső (Live Search) és indexelés
 function filterStock() {
-    const query = searchInput.value.toLowerCase(); // Minden betűt kisbetűsítünk (hogy Sztender vagy sZtENDER is egyezzen)
+    const query = searchInput.value.toLowerCase(); // Case-insensitive query transzformáció
     
-    // Ha kiléptett a felhasználó az irányítópultról amint beírt valamit
+    // Auto-view váltás keresés esetén, ha a dashboardon lennénk
     if (query.length > 0 && aktualisSzuro === 'dashboard') {
-        aktualisSzuro = 'all'; // Átkapcsolunk kártya módba!
+        aktualisSzuro = 'all'; 
     }
 
-    // Fogjuk a teljes listát és FILTER! Csak azt hagyjuk meg a szurt (szűrt) dobozban, aminek a neve vagy cikkszáma tartalmazza amit beírtunk. (includes = tartalmazza)
+    // Teljesszövegű szűrés implementálása memóriában (Név és SKU alapján)
     const szurt = termekek.filter(t => t.nev.toLowerCase().includes(query) || t.cikkszam.toLowerCase().includes(query));
     
-    // Meg is hívjuk a kirajzolót az új listával
+    // Virtuális nézet frissítése
     renderVisualStock(szurt);
 }
 
-// "Okos mesterséges laikus gépezet", amely kitalálja egy termék neve alapján, melyik kategória fül höz tartozzon, mert az adatbázis ezt nem tartalmazza
+// Heurisztikus kategorizáló algoritmus
+// Terméknevek szemantikai elemzése alapján csoportosít
 function getTermekCategory(t) {
-    const n = t.nev.toLowerCase(); // Minden kisbetűs ami egyszerűbbé teszi az ellenőrzést
+    const n = t.nev.toLowerCase(); 
     
-    // Waterfall (vízesés mód) - Ahogy egyezést talál a kulcsszóval, rögtön hazaküldi a nevet. Vagyis ami "laptok", az Plexiképként kerül besorolásra... 
-    // Ha több minden is van a nevében, mindig az első érvényesül. A '!' tagadást jelent, ha mondjuk Pénztárgépszalag de benne van a nevében, hogy "nem alkalmas kasszaszalag!" -> itt kizárásokat alkalmazhatunk.
+    // Waterfall regex-szerű string pattern matching kizárásokkal (!includes)
     if ((n.includes('laptok') || n.includes('tábla') || n.includes('plexi') || n.includes('árcímketartó')) && !n.includes('felíró')) return 'plexitok';
     if (n.includes('ruhazsák') || n.includes('öltönyzsák') || n.includes('ruhafólia') || (n.includes('fólia') && n.includes('sztender'))) return 'ruhazsak';
     if (n.includes('sztender') || n.includes('állvány')) return 'sztender';
@@ -713,37 +689,33 @@ function getTermekCategory(t) {
     if (n.includes('kosár')) return 'kosar';
     if (n.includes('vállfa') || n.includes('méretjelölő') || n.includes('méretjelző') || n.includes('csipesz') || n.includes('divider') || n.includes('leszedő')) return 'vallfa';
     
-    // Külön al-csoport (két lépéshátránnyal mert több kulcsszó kell hozzá), csak Irodaszerek:
+    // Összetett tömb vizsgálat másodlagos csoportosításhoz (Irodaszerek)
     const irodaSzavak = ['toll', 'marker', 'boríték', 'genotherm', 'gyorsfűző', 'spirálfüzet', 'radír', 'ragasztó', 'tűzőkapocs', 'nyomtatvány', 'kábelkötegelő', 'papír', 'cellux', 'victoria', 'a4', 'apli', 'csomagolószalag', 'felírótábla'];
-    // some: azt jelenti hogy "Van-e akármelyik a Szavak közül a nevében"?
     if (irodaSzavak.some(szo => n.includes(szo))) return 'irodaszer';
     
-    // Ha végképp lemaradt mindenségből
+    // Default fallback kategória
     return 'egyeb';
 }
 
-// Ha a dashboardon rákattintott egy kolléga, hogy "Kritikus számú cuccok, meg is nyitja".
+// Kritikus készletnézet aktiválása (Threshold Filter)
 function filterCritical() {
     aktualisSzuro = 'critical';
-    document.querySelectorAll('.category-buttons button').forEach(b => b.classList.remove('active-btn')); // Eltünteti a gombokról az aktiv rést.
+    document.querySelectorAll('.category-buttons button').forEach(b => b.classList.remove('active-btn')); 
     
-    // Válassza le csak azokat a termékeket amiknek az állása a grafikonjukon 20%-nál kisebb
+    // Filter by KPI threshold (<20% limit)
     const szurt = termekek.filter(t => (t.max > 0 ? (t.db/t.max)*100 : 0) < 20 || t.db <= 0);
-    renderVisualStock(szurt); // Jeleníti meg őket
+    renderVisualStock(szurt); 
 }
 
-// Mikor rákattintanak a bal oldali Kategória fülek valamelyikére (Hosszú gombok).
-// A 'kod' az a "besorolási csoport neve" amit átad a HTML! (Például 'sztender')
+// DOM elem és szűrő paraméter reset (Kategóriaválasztó)
 function filterCategory(kod, clear = true) {
-    aktualisSzuro = kod; // Elmentjük hol vagyunk
+    aktualisSzuro = kod; 
     if (clear) {
-        // Kitöröljük ami addig a keresőben be volt gépelve, hogy ne okozzon megakadást
         searchInput.value = "";
         
-        // Levesszük azt az "aktív/más színű gomb" mintázatot az összes gombról
         document.querySelectorAll('.category-buttons button').forEach(b => b.classList.remove('active-btn'));
         
-        // Célvisszajelzés: Rárakjuk csak arra a Gombra, amire egyáltalán kattintottak
+        // Esemény delegáció alapú gomb-aktviáció
         const e = window.event || event;
         if (e && e.target) {
             const btn = e.target.closest('button');
@@ -752,30 +724,26 @@ function filterCategory(kod, clear = true) {
     }
     
     if (kod === 'all') { 
-        renderVisualStock(termekek); return; // Ha az "Összes" gombra kattintunk, simán odatesszük az egész táblát mindenestül
+        renderVisualStock(termekek); return; 
     }
 
-    // Lekérjük szűréssel, amiknek az okos-besoroló szerinti neve megegyezik a gomb kategóriájával
+    // Filter pipeline alapján célzott lista-frissítés
     const szurt = termekek.filter(t => getTermekCategory(t) === kod);
-    renderVisualStock(szurt); // Sokat rajzoltatunk...
+    renderVisualStock(szurt); 
 }
 
-// Termékkártya megfordítása (amikor rákattintasz egy téglalapra az oldalon)
+// Kártya CSS 3D transzformáció vezérlő (Flip handler timeout referenciákkal)
 function toggleCard(cardEl) {
-    // "cardEl" - maga a Html keret (div). A data-cikkszam attribute-ból kivesszük a cikkszámot.
     const cikkszam = cardEl.getAttribute('data-cikkszam');
-    // A html elemnek kiosztunk egy osztályt (flipped - fordított). Ezt a class-t a CSS veszi át
-    // és abban van a 3D transzformáció ami fizikailag is csinálja az elfordulást!
     cardEl.classList.toggle('flipped');
 
-    // Ha ez a kártya egyszer már ki lett pörgetve és a naptárban beterveztük h visszatalál majd pördülni (cardTimers változóval mérve)...
+    // Korábbi animációs timeout megszakítása versenyhelyzet miatt
     if (cardTimers[cikkszam]) {
-        // Töröljük ki az órát ha nagyon gyorsan rányomtál megint h csukja be! Ne fussunk össze a szerverrel.
         clearTimeout(cardTimers[cikkszam]);
         delete cardTimers[cikkszam];
     }
 
-    // Beállítunk az órába, hogy 5000 millisec (= 5s) után szedje ki a "flipped" kulcsszót CSS-ből. Ami "felfordítja a kártyát alaphelyzetre". Automata viselkedés!
+    // Auto-restore időzítő (5s), State clear a timeout callback-ben
     if (cardEl.classList.contains('flipped')) {
         cardTimers[cikkszam] = setTimeout(() => {
             cardEl.classList.remove('flipped');
@@ -786,31 +754,29 @@ function toggleCard(cardEl) {
 
 
 // =========================================================================
-// 9. AZ ALKALMAZÁS MOTORJA ÉS MEGJELENÍTÉSE (KÁRTYÁK KIRAJZOLÁSA HTML KÓDBA)
+// 9. VIRTUAL DOM RENDERELŐ MOTOR (Main View Layer)
 // =========================================================================
 
-// "render = Lereszel és kirak" - HTML kóddal operáló renderelő függvény
+// Dinamikus HTML DOM fa rendering 
 function renderVisualStock(adatok) {
-    appDiv.classList.add('grid-container'); // Művelet: Adjuk hozzá a hálózatszerű elhelyezést a mainhez.
+    appDiv.classList.add('grid-container'); 
     
-    // Ha az adatlista tok üres (Mondjuk olyan szót kerestünk ami nem is létezik):
+    // Elem nélküli állapot lekezelése
     if (adatok.length === 0) {
         appDiv.innerHTML = '<div style="color: var(--text-muted); text-align: center; grid-column: 1/-1; padding: 40px; font-size: 1.2rem;">Ebben a kategóriában nincsenek termékek.</div>';
         return;
     }
 
-    // Itt eljátszunk az "Optimalizáció" gondolattal! Miért töltsük újra az EGÉSZ DOM elemeket a lapon ha:
-    // a darabszám (termék) egyezik ami ki volt rajzolva és ami eddig itt állt?
+    // DOM Caching: Részleges frissítés (Partial Update Lifecycle) vizsgálata
     const letezo = appDiv.querySelectorAll('.card-container');
     
-    // Ha az elemek nem passzolnak egymással (Példa, van új termék az adatban vagy a szűrt kevesebb), TELJES ÚJRARAJZTOLÁST KÉR (fullRender)
+    // Ha a node length eltér, layout rebuild szükséges
     if (letezo.length !== adatok.length) { 
         fullRender(adatok); 
         return; 
     }
 
-    // Ha ugyanolyan termékek állnak ugyanitt (mondjuk csak a raktár adatok lettek frissítve az netről)
-    // akkor spóroljunk az idővel és csak cseréjük le bennük az adatokat egy forrásból (forEach)! ÉLŐ RENDZSER ÉPÍTÉS!
+    // VDOM diff algoritmus elkerülése, gyors data-binding (csak a mutálódott adatokat rendereljük újra attribútum szinten)
     adatok.forEach((t, i) => {
         const c = letezo[i];
         const hasImage = c.querySelector('.product-image-container');
@@ -995,13 +961,97 @@ function fullRender(adatok) {
 }
 
 // =========================================================================
-// 10. AZ ALKALMAZÁS INDÍTÁSA - (Amikor megnyílik a weboldal)
+// 10. NAPLÓ (ELŐZMÉNYEK) MEGJELENÍTÉSE - CSAK ADMIN
+// =========================================================================
+async function renderHistory() {
+    if (!currentUser || currentUser.role !== 'admin') return;
+    
+    aktualisSzuro = 'history';
+    document.querySelectorAll('.category-buttons button').forEach(b => b.classList.remove('active-btn'));
+    
+    // Alap html szerkezet a naplónak (egy táblázat feltöltése alatt)
+    appDiv.classList.remove('grid-container');
+    appDiv.innerHTML = `
+        <div class="dashboard-container">
+            <div class="dashboard-welcome" style="margin-bottom: 2rem;">
+                <h2><i class="ph-bold ph-clock-counter-clockwise"></i> Módosítási Napló</h2>
+                <button class="btn-action" onclick="renderDashboard()" style="padding: 0.5rem 1rem; border-radius: 8px; font-weight: bold; cursor: pointer; border: none; background: rgba(255,255,255,0.1); color: white;"><i class="ph-bold ph-arrow-left"></i> Vissza</button>
+            </div>
+            <div class="history-table-container">
+                <table class="history-table">
+                    <thead>
+                        <tr>
+                            <th>Dátum</th>
+                            <th>Felhasználó</th>
+                            <th>Cikkszám</th>
+                            <th>Terméknév</th>
+                            <th style="text-align:center">Változás</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody">
+                        <tr><td colspan="5" style="text-align:center; padding: 2rem;"><i class="ph-bold ph-spinner ph-spin"></i> Betöltés...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+
+    try {
+        const response = await fetch(`${API_URL}/history`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ role: currentUser.role })
+        });
+        
+        const result = await response.json();
+        
+        if (!response.ok) throw new Error(result.error || "Hiba az előzmények lekérésekor.");
+        
+        const tbody = appDiv.querySelector('#historyTableBody');
+        
+        if (!result.logs || result.logs.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem; color: var(--text-muted);">Nincs még módosítási előzmény.</td></tr>';
+            return;
+        }
+        
+        let rowsHtml = '';
+        result.logs.forEach(log => {
+            const date = new Date(log.created_at).toLocaleString('hu-HU');
+            const diff = log.new_qty - log.old_qty;
+            const sign = diff > 0 ? '+' : '';
+            const colorClass = diff > 0 ? 'text-green' : (diff < 0 ? 'text-red' : 'text-yellow');
+            
+            // Megkeressük a termék nevét a meglévő "termekek" listából (ami a frontenden van)
+            const t = termekek.find(t => String(t.cikkszam) === String(log.cikkszam));
+            const termekNev = t ? t.nev : 'Ismeretlen termék';
+            
+            rowsHtml += `
+                <tr>
+                    <td>${date}</td>
+                    <td style="color: var(--neon-cyan);">${log.username}</td>
+                    <td>#${log.cikkszam}</td>
+                    <td>${termekNev}</td>
+                    <td style="text-align:center" class="qty-change ${colorClass}">${log.old_qty} &rarr; ${log.new_qty} (${sign}${diff})</td>
+                </tr>
+            `;
+        });
+        
+        tbody.innerHTML = rowsHtml;
+        
+    } catch (e) {
+        console.error("Napló hiba:", e);
+        appDiv.querySelector('#historyTableBody').innerHTML = '<tr><td colspan="5" style="text-align:center; padding: 2rem; color: var(--accent-red);">Hiba a napló betöltésekor: ' + e.message + '</td></tr>';
+    }
+}
+
+// =========================================================================
+// 11. ALKALMAZÁS INICIALIZÁLÁS (Bootstrap / Entry Point)
 // =========================================================================
 try {
-    checkSession(); // Keresi a user adatot a cookie okban, felébreszti a fiókodat.
-    setInterval(updateClock, 1000); // Ráállítja a script motort az óramutatóhoz, Másodperces futással mutatja hány óra (1000 millisecond)
-    updateClock(); // Manuális hivatkozás elsődlegesen, h ne kelljen várni az 1 másodpercet rögtön
-    setInterval(() => fetchProducts(), 10000); // Na meg ez! Beállítja egy 10 másodperces órajáratra (hurokra) hogy folyton kérjen le adatbázis frissítést az adatokra
+    checkSession(); // Cache authentikáció indítása
+    setInterval(updateClock, 1000); // UI tick clock indítása (1000ms loop)
+    updateClock(); 
+    setInterval(() => fetchProducts(), 10000); // Polling daemon a szerver szinkronizációhoz (10s)
 } catch (e) {
-    console.error("Iniciáló hiba:", e); // Hatalmas hiba dobás fejlesztői leírással
+    console.error("Boot hiba - Az alkalmazás inicializálása megszakadt:", e); 
 }
