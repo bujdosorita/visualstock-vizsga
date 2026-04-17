@@ -424,6 +424,9 @@ function handleUpdate(ujAdatok) {
         renderDashboard();
     } else if (aktualisSzuro === 'critical') {
         filterCritical();
+    } else if (aktualisSzuro === 'history') {
+        // Ha a history nézeten volt, egyszerűen csak meghívjuk újra a naplót
+        renderHistory();
     } else {
         filterCategory(aktualisSzuro, false);
     }
