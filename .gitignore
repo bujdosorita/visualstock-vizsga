@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Environment variables
+.env
+.env.local
+
+# IDEs and Editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# VisualStock Specifikus Biztonsági / Ideiglenes mappák
+Backup_code_freeze/
+Lementett_Kepek/
+frontend/Képek/
+backend/supabase/.temp/
+
+# Word dokumentumok és ideiglenes Office fájlok
+*.docx
+~$*.docx
+*.tmp
+
+# Mac OS
+.DS_Store
+
+# Log fájlok
+*.log
