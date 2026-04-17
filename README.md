@@ -39,7 +39,7 @@ Ennek értelmében a webes felületen (VisualStock) szándékosan **nincs lehet�
 ![Login](Readme_img/Login.png)
 
 ### 💳 Termékkártyák (Adatok és Fotók)
-![Product Cards](Readme_img/Termek2_admin.png)
+![Product Cards](Readme_img/Termekkartya2_admin.png)
 
 ---
 
