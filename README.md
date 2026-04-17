@@ -15,6 +15,7 @@ A **VisualStock** egy modern, **Neon/Cyberpunk** stílusú raktárkészlet-kezel
 - [x] **Kiberbiztonság (RLS & Hashing)**: A jelszavak SHA-256 algoritmussal titkosítottak, az adatbázis megóvásáról pedig a Supabase Row Level Security (RLS) gondoskodik.
 - [x] **Szerepkör alapú hozzáférés (RBAC)**: Háromszintű jogosultságkezelés (Admin, Editor, Reader) biztosítja az adatvédelmet.
 - [x] **Módosítási Napló (Audit Trail)**: Adminisztrátorok számára elérhető vizuális módosítási előzmény-napló.
+- [x] **Rugalmas Készletmódosítás**: A készletértékek nemcsak a '+/-' gombokkal, hanem közvetlen (manuális) számbevitellel is villámgyorsan felülírhatók.
 - [x] **Tesztelői (QA) Védelmi Rendszer**: Tranzakciós határérték védelem (TC-03) és folyamatmegszakítás (TC-04).
 - [x] **Biztonságos Regisztráció**: E-mail alapú fiók létrehozása. Újbóli megnyitáskor automatikus mezőürítés és jelszó-elrejtés.
 - [x] **ERP Szinkron Jelzés**: Élő visszajelzés az utolsó adatszinkronizáció időpontjáról.
@@ -59,7 +60,7 @@ A rendszer három különböző szintű hozzáférést biztosít (RBAC - Role-Ba
 | Szerepkör | Hozzáférés / Feladatkör | Létrehozás Módja |
 |:---:|:---:|:---:|
 | **Reader (Olvasó)** | Csak olvashatja a statisztikákat és a készletet. | Automatikus a regisztráció után. |
-| **Editor (Szerkesztő)** | Készletszintet is módosíthat (plusz/mínusz gombokkal). | Manuális adatbázis (SQL) szintű emelés (`role='editor'`). |
+| **Editor (Szerkesztő)** | Készletszintet módosíthat (+/- gombokkal vagy közvetlen számbevitellel). | Manuális adatbázis (SQL) szintű emelés (`role='editor'`). |
 | **Admin (Rendszergazda)** | Készletmódosítás, szinkronizáció + Módosítási Napló (Audit) megtekintése. | Manuális adatbázis (SQL) szintű emelés (`role='admin'`). |
 
 ---
