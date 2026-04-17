@@ -426,8 +426,8 @@ function handleUpdate(ujAdatok) {
     } else if (aktualisSzuro === 'critical') {
         filterCritical();
     } else if (aktualisSzuro === 'history') {
-        // Ha a history nézeten volt, egyszerűen csak meghívjuk újra a naplót
-        renderHistory();
+        // Ha a history nézeten volt, csendben (villogás nélkül) háttérfrissítjük a naplót
+        renderHistory(true);
     } else {
         filterCategory(aktualisSzuro, false);
     }
@@ -967,38 +967,41 @@ function fullRender(adatok) {
 // =========================================================================
 // 10. NAPLÓ (ELŐZMÉNYEK) MEGJELENÍTÉSE - CSAK ADMIN
 // =========================================================================
-async function renderHistory() {
+async function renderHistory(isBackgroundRefresh = false) {
     if (!currentUser || currentUser.role !== 'admin') return;
     
     aktualisSzuro = 'history';
     document.querySelectorAll('.category-buttons button').forEach(b => b.classList.remove('active-btn'));
     
-    // Alap html szerkezet a naplónak (egy táblázat feltöltése alatt)
-    appDiv.classList.remove('grid-container');
-    appDiv.innerHTML = `
-        <div class="dashboard-container">
-            <div class="dashboard-welcome" style="margin-bottom: 2rem;">
-                <h2><i class="ph-bold ph-clock-counter-clockwise"></i> Módosítási Napló</h2>
-                <button class="btn-action" onclick="renderDashboard()" style="padding: 0.5rem 1rem; border-radius: 8px; font-weight: bold; cursor: pointer; border: none; background: rgba(255,255,255,0.1); color: white;"><i class="ph-bold ph-arrow-left"></i> Vissza</button>
+    // Ha nem háttérfrissítés, vagy ha valamiért még nincs is táblázat kirajzolva
+    const existingBody = document.getElementById('historyTableBody');
+    if (!isBackgroundRefresh || !existingBody) {
+        appDiv.classList.remove('grid-container');
+        appDiv.innerHTML = `
+            <div class="dashboard-container">
+                <div class="dashboard-welcome" style="margin-bottom: 2rem;">
+                    <h2><i class="ph-bold ph-clock-counter-clockwise"></i> Módosítási Napló</h2>
+                    <button class="btn-action" onclick="renderDashboard()" style="padding: 0.5rem 1rem; border-radius: 8px; font-weight: bold; cursor: pointer; border: none; background: rgba(255,255,255,0.1); color: white;"><i class="ph-bold ph-arrow-left"></i> Vissza</button>
+                </div>
+                <div class="history-table-container">
+                    <table class="history-table">
+                        <thead>
+                            <tr>
+                                <th>Dátum</th>
+                                <th>Felhasználó</th>
+                                <th>Cikkszám</th>
+                                <th>Terméknév</th>
+                                <th style="text-align:center">Változás</th>
+                            </tr>
+                        </thead>
+                        <tbody id="historyTableBody">
+                            <tr><td colspan="5" style="text-align:center; padding: 2rem;"><i class="ph-bold ph-spinner ph-spin"></i> Betöltés...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
             </div>
-            <div class="history-table-container">
-                <table class="history-table">
-                    <thead>
-                        <tr>
-                            <th>Dátum</th>
-                            <th>Felhasználó</th>
-                            <th>Cikkszám</th>
-                            <th>Terméknév</th>
-                            <th style="text-align:center">Változás</th>
-                        </tr>
-                    </thead>
-                    <tbody id="historyTableBody">
-                        <tr><td colspan="5" style="text-align:center; padding: 2rem;"><i class="ph-bold ph-spinner ph-spin"></i> Betöltés...</td></tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    `;
+        `;
+    }
 
     try {
         const response = await fetch(`${API_URL}/history`, {
