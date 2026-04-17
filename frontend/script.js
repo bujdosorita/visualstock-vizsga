@@ -279,9 +279,10 @@ function renderDashboard() {
 
     // VDOM-szerű optimalizált frissítés (Smooth Update Layout)
     // A teljes újra-renderelés elkerülésével minimalizálja a reflow/repaint költségeket
-    const existingDash = document.querySelector('.dashboard-container');
-    if (existingDash) {
-        const welcomeH2 = existingDash.querySelector('.dashboard-welcome h2');
+    const isDashboardOpen = document.querySelector('.stats-grid');
+    if (isDashboardOpen) {
+        const existingDash = document.querySelector('.dashboard-container');
+        const welcomeH2 = existingDash ? existingDash.querySelector('.dashboard-welcome h2') : null;
         if (welcomeH2) welcomeH2.innerText = `Üdvözlünk, ${currentUser.name}!`;
 
         const valTotal = document.getElementById('stat-total-val');
