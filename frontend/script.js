@@ -236,22 +236,24 @@ function updateClock() {
 function checkSecurityLimits() {
     if (!currentUser) return;
 
-    const now = new Date();
-    const currentHour = now.getHours();
-    
     // Lekérjük mikor lépett be a felhasználó
     const saved = localStorage.getItem('vs_session');
     if (!saved) return;
     const sessionData = JSON.parse(saved);
     const sessionStart = new Date(sessionData.sessionStart);
     
-    // Ha elmúlt 17:00 (vagy reggel 8 előtt vagyunk), ÉS a belépés ma 17:00 előtt történt
-    // (Ez azt jelenti, hogy "benthagyott" fiók a munkaidő végéről)
-    const endOfWork = new Date();
-    endOfWork.setHours(17, 0, 0, 0);
+    const now = new Date();
+    
+    // Kiszámítjuk, mikor volt a legutóbbi 17:00
+    const last17 = new Date();
+    last17.setHours(17, 0, 0, 0);
+    if (now.getHours() < 17) {
+        last17.setDate(last17.getDate() - 1); // Ha ma még nincs 17:00, akkor tegnap 17:00 volt a határ
+    }
 
-    if ((currentHour >= 17 || currentHour < 8) && sessionStart < endOfWork) {
-        console.warn("Biztonsági korlát: Munkaidő lejárt, automatikus kijelentkezés.");
+    // Ha a bejelentkezés a legutóbbi 17:00 ELŐTT történt, a session érvénytelen
+    if (sessionStart < last17) {
+        console.warn("Biztonsági korlát: Munkaidő lejárt (17:00), automatikus kijelentkezés.");
         handleLogout();
     }
 }
