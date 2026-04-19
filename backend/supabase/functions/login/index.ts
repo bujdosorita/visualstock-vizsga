@@ -5,26 +5,46 @@ import { corsHeaders } from "../_shared/cors.ts";
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response(null, { headers: corsHeaders, status: 204 })
   }
 
   try {
     const { username, password } = await req.json();
     const hashedPass = await hashPassword(password);
     
-    const { data, error } = await supabaseClient
+    // Először lekérjük a felhasználót a neve alapján (kis- és nagybetű függetlenül)
+    const { data, error: dbError } = await supabaseClient
       .from('felhasznalok')
       .select('*')
-      .or(`username.eq.${username},email.eq.${username}`)
-      .eq('password', hashedPass)
+      .ilike('username', username)
       .single();
       
-    if (error || !data) {
-      return new Response(JSON.stringify({ error: "Hibás adatok vagy jelszó!" }), { 
+    // Ha adatbázis hiba van
+    if (dbError && dbError.code !== 'PGRST116') {
+       return new Response(JSON.stringify({ error: `Adatbázis hiba: ${dbError.message}` }), { 
+         status: 500, 
+         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+       });
+    }
+
+    // DEBUG: Ha nem találja a felhasználót
+    if (!data) {
+      return new Response(JSON.stringify({ error: "DEBUG: Felhasználó nem található!" }), { 
         status: 401, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       });
     }
+
+    const hashedPass = await hashPassword(password);
+    
+    // Ha megtalálta, de a jelszó nem stimmel
+    if (data.password !== hashedPass && data.password !== password) {
+      return new Response(JSON.stringify({ error: "DEBUG: Jelszó nem egyezik!" }), { 
+        status: 401, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      });
+    }
+
     return new Response(JSON.stringify({ user: data }), { 
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });

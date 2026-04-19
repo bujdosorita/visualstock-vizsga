@@ -4,10 +4,18 @@ import { corsHeaders } from "../_shared/cors.ts";
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response(null, { headers: corsHeaders, status: 204 })
   }
 
   try {
+    // Csak POST kérést engedélyezünk a biztonság érdekében
+    if (req.method !== 'POST') {
+       return new Response(JSON.stringify({ error: "Method not allowed" }), { 
+         status: 405, 
+         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+       });
+    }
+
     const { role } = await req.json();
     
     if (role !== 'admin') {
