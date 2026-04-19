@@ -21,6 +21,7 @@ let lastSyncTime = null; // Utolsó sikeres adatszinkronizáció időbélyege
 // 3. JOGOSULTSÁGKEZELÉS (Auth & RBAC)
 // =========================================================================
 let currentUser = null; // Aktuális session adatok (id, név, role)
+let lastActivity = Date.now(); // Utolsó felhasználói aktivitás időbélyege (inaktivitás figyeléshez)
 let pendingChanges = {}; // Kliensoldali batch tranzakciós verem (mentésre váró módosítások)
 
 // --- Hitelesítési Logika ---
@@ -158,8 +159,13 @@ function loginSuccess(session) {
     
     // Auth Session rögzítése persistencia (F5 újratöltés) biztosításához
     currentUser = session;
-    const sessionWithTime = { ...session, sessionStart: Date.now() };
+    
+    // CSAK akkor állítunk be új kezdőidőpontot, ha még nincs (pl. friss login)
+    // Így az oldalfrissítés nem nullázza le a biztonsági időkorlátokat
+    const sessionStart = session.sessionStart || Date.now();
+    const sessionWithTime = { ...session, sessionStart: sessionStart };
     localStorage.setItem('vs_session', JSON.stringify(sessionWithTime));
+    lastActivity = Date.now(); // Aktivitás frissítése belépéskor
     
     // UI layout módosítása: bejelentkező overlay elrejtése
     document.getElementById('loginOverlay').style.display = 'none';
@@ -232,17 +238,26 @@ function updateClock() {
     checkSecurityLimits(); // Időalapú policy ellenőrzés futtatása
 }
 
-// --- Biztonsági korlát: Automatikus kijelentkezés 17:00-kor ---
+// --- Biztonsági korlátok: Automatikus kijelentkezés és Inaktivitás ---
 function checkSecurityLimits() {
     if (!currentUser) return;
 
-    // Lekérjük mikor lépett be a felhasználó
+    const now = new Date();
+    
+    // 1. INAKTIVITÁSI KORLÁT (3 óra = 3 * 60 * 60 * 1000 ms)
+    const IDLE_LIMIT = 3 * 60 * 60 * 1000; 
+    if (Date.now() - lastActivity > IDLE_LIMIT) {
+        console.warn("Biztonsági korlát: Inaktivitás miatt automatikus kijelentkezés (3 óra).");
+        handleLogout();
+        return;
+    }
+
+    // 2. MUNKAIDŐ VÉGE (17:00) KORLÁT
+    // Lekérjük mikor lépett be a felhasználó eredetileg
     const saved = localStorage.getItem('vs_session');
     if (!saved) return;
     const sessionData = JSON.parse(saved);
     const sessionStart = new Date(sessionData.sessionStart);
-    
-    const now = new Date();
     
     // Kiszámítjuk, mikor volt a legutóbbi 17:00
     const last17 = new Date();
@@ -1061,6 +1076,13 @@ try {
     setInterval(updateClock, 1000); // UI tick clock indítása (1000ms loop)
     updateClock(); 
     setInterval(() => fetchProducts(), 10000); // Polling daemon a szerver szinkronizációhoz (10s)
+
+    // --- Aktivitás figyelő események regisztrálása ---
+    ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'].forEach(evt => {
+        window.addEventListener(evt, () => {
+            lastActivity = Date.now();
+        }, { passive: true });
+    });
 } catch (e) {
     console.error("Boot hiba - Az alkalmazás inicializálása megszakadt:", e); 
 }
