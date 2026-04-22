@@ -25,5 +25,7 @@ A Kulcs-Soft verziójától függően három út áll rendelkezésre:
 ## Teendő az élesítéskor
 Amikor meglesz a hozzáférés, csak egy kis "robotot" (scriptet) kell futtatni a szerveren, ami pl. 5 percenként lefuttat egy `UPDATE` parancsot a Supabase táblán a Kulcs-Soft adatai alapján.
 
-> [!NOTE]
-> A VisualStock frontend kódján (amit most írtunk) **semmit nem kell változtatni**, mert az továbbra is a Supabase-t fogja figyelni.
+
+---
+© 2026 VisualStock Premium - v36.0
+
