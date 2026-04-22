@@ -1,5 +1,6 @@
 -- =========================================================================
 -- VISUALSTOCK - BIZTONSÁGI HÁZIRENDEK / RLS (Row Level Security) CONFIG
+-- Verzió: v36.0
 -- =========================================================================
 -- Deployment: Ez a szkript a Supabase SQL szerkesztőjében futtatandó,
 -- a tábla szintű jogosultságok érvényesítéséhez.
@@ -70,17 +71,9 @@ WITH CHECK (true);
 
 -- (A 'vizsga_reader' marad 'reader', így azon nem kell módosítani.)
 -- =========================================================================
--- AUDIT TRAIL (inventory_logs) DDL & POLICIES
+-- AUDIT TRAIL (inventory_logs) POLICIES
 -- =========================================================================
 
-CREATE TABLE IF NOT EXISTS inventory_logs (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    username VARCHAR(255) NOT NULL,
-    cikkszam VARCHAR(50) NOT NULL,
-    old_qty INT NOT NULL,
-    new_qty INT NOT NULL,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW())
-);
 
 ALTER TABLE inventory_logs ENABLE ROW LEVEL SECURITY;
 
