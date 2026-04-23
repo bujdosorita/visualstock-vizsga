@@ -14,9 +14,9 @@ CREATE TABLE IF NOT EXISTS felhasznalok (
 );
 
 INSERT INTO felhasznalok (username, password, role) VALUES
-('vizsga_admin', 'admin123', 'admin'),
-('vizsga_editor', 'editor123', 'editor'),
-('vizsga_reader', 'reader123', 'reader')
+('vizsga_admin', 'Vizsga2026!', 'admin'),
+('vizsga_editor', 'Vizsga2026!', 'editor'),
+('vizsga_reader', 'Vizsga2026!', 'reader')
 ON CONFLICT (username) DO NOTHING;
 
 -- 2. TERMÉKEK TÁBLA (Raktárkészlet)
