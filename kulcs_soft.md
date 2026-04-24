@@ -27,5 +27,5 @@ Amikor meglesz a hozzáférés, csak egy kis "robotot" (scriptet) kell futtatni 
 
 
 ---
-© 2026 VisualStock Premium - v36.0
+© 2026 VisualStock Premium - v36.1
 

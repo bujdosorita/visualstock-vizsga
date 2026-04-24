@@ -8,7 +8,7 @@ serve(async (req) => {
   }
 
   try {
-    const { updates, username, role } = await req.json(); // Type: Array<{cikkszam: string, db: number}>
+    const { updates, userId, role } = await req.json(); // Type: Array<{cikkszam: string, db: number}>
     
     // RBAC: Jogosultsági réteg (Authorization guard)
     if (role !== 'admin' && role !== 'editor') {
@@ -47,7 +47,7 @@ serve(async (req) => {
            await supabaseClient
              .from('inventory_logs')
              .insert([{ 
-               username: username || 'Ismeretlen', 
+               user_id: userId, 
                cikkszam: update.cikkszam, 
                old_qty: oldQty, 
                new_qty: update.db 

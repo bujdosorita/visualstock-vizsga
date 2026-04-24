@@ -53,7 +53,7 @@ async function handleLogin() {
             errorEl.innerText = result.error || "Hibás adatok vagy jelszó!"; 
         } else {
             // Sikeres hitelesítés kezelése
-            loginSuccess({ name: result.user.username, role: result.user.role });
+            loginSuccess({ id: result.user.id, name: result.user.username, role: result.user.role });
         }
     } catch (e) {
         console.error("Login hiba:", e);
@@ -457,7 +457,7 @@ function handleUpdate(ujAdatok) {
 
 // Relatív (+/-) készletváltoztatás a kliens cache-ben
 async function modifyStock(cikkszam, valtozas) {
-    // RBAC: Hitelesítési (Auth) és szerepkör (Authorization) ellenőrzése
+    // RBAC: Hitelesítési (Auth) és szerepkör (Authorization) ellenőrzése a kliens oldalon
     if (!currentUser || (currentUser.role !== 'admin' && currentUser.role !== 'editor')) return; 
     
     // Polling zárolás / race condition elkerülése
@@ -473,9 +473,9 @@ async function modifyStock(cikkszam, valtozas) {
     // Constraint: Készlet nem lehet negatív (0-s alsó korlát)
     const ujKeszlet = Math.max(0, termekek[termekIndex].db + valtozas);
 
-    // QA Logging: UNIT-01 Teszt forgatókönyv lefedettsége
+    // Határvédelem: Üzleti logika szerint a készlet nem mehet nulla alá
     if (termekek[termekIndex].db + valtozas < 0) {
-        console.warn(`UNIT-01 Teszt: Figyelem! A készlet nem mehet nulla alá! Művelet blokkolva.`);
+        console.warn(`Figyelem! Negatív készlet nem engedélyezett.`);
     }
 
     termekek[termekIndex].db = ujKeszlet; 
@@ -519,10 +519,10 @@ async function setManualStock(cikkszam, ertek) {
     let ujKeszlet = parseInt(ertek);
     if (isNaN(ujKeszlet)) return; 
     
-    // Zero-bound constrain vizsgálata
+    // Bemeneti validáció: Negatív érték automatikus korrekciója
     if (ujKeszlet < 0) {
         ujKeszlet = 0;
-        console.warn(`TC-03 Teszt: Figyelem! A készlet nem mehet nulla alá!`);
+        console.warn(`Negatív érték korrigálva 0-ra.`);
     }
 
     // Tranzakciós várakozó lista (pool) frissítése
@@ -587,8 +587,8 @@ function confirmBulkUpdate() {
     // Cancel flow
     btnCancel.onclick = function() {
         overlay.style.display = 'none';
-        // QA Logging: UNIT-02 Megszakítás forgatókönyv lefedettsége
-        console.warn(`UNIT-02 Teszt: Mentés megszakítva. A memória tartalma megmaradt (${count} db módosítás).`);
+        // QA Logging: TC-04 Megszakítás forgatókönyv lefedettsége
+        console.warn(`TC-04 Teszt: Mentés megszakítva. A memória tartalma megmaradt (${count} db módosítás).`);
     };
 }
 
@@ -611,7 +611,7 @@ async function saveBulkChanges() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ 
                 updates,
-                username: currentUser.name,
+                userId: currentUser.id,
                 role: currentUser.role
             })
         });
@@ -985,6 +985,7 @@ function fullRender(adatok) {
 // 10. NAPLÓ (ELŐZMÉNYEK) MEGJELENÍTÉSE - CSAK ADMIN
 // =========================================================================
 async function renderHistory(isBackgroundRefresh = false) {
+    // Jogosultság ellenőrzése: A naplót csak Adminisztrátori szerepkörrel lehet megtekinteni
     if (!currentUser || currentUser.role !== 'admin') return;
     
     aktualisSzuro = 'history';
@@ -1049,10 +1050,12 @@ async function renderHistory(isBackgroundRefresh = false) {
             const t = termekek.find(t => String(t.cikkszam) === String(log.cikkszam));
             const termekNev = t ? t.nev : 'Ismeretlen termék';
             
+            const logUsername = log.felhasznalok ? log.felhasznalok.username : 'Ismeretlen';
+            
             rowsHtml += `
                 <tr>
                     <td>${date}</td>
-                    <td style="color: var(--neon-cyan);">${log.username}</td>
+                    <td style="color: var(--neon-cyan);">${logUsername}</td>
                     <td>#${log.cikkszam}</td>
                     <td>${termekNev}</td>
                     <td style="text-align:center" class="qty-change ${colorClass}">${log.old_qty} &rarr; ${log.new_qty} (${sign}${diff})</td>
@@ -1083,6 +1086,8 @@ try {
             lastActivity = Date.now();
         }, { passive: true });
     });
+
+    // PWA: Offline állapot kezelése és Service Worker inicializálás helye
 } catch (e) {
     console.error("Boot hiba - Az alkalmazás inicializálása megszakadt:", e); 
 }

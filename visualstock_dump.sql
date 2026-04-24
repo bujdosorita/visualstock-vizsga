@@ -1,6 +1,6 @@
 -- =========================================================================
 -- VISUALSTOCK - TELJES ADATBÁZIS EXPORT (DUMP)
--- Verzió: v36.0
+-- Verzió: v36.1
 -- Környezet: Supabase / PostgreSQL
 -- =========================================================================
 
@@ -297,9 +297,12 @@ INSERT INTO termekek (cikkszam, nev, db, max_keszlet) VALUES
 ('900008', 'XXXL Méretjelölő vállfára', 16, 30),
 ('503508', 'Zipzáras Fekete Ruhazsák Fehér Szegéllyel 180cm magas', 92, 200);
 -- 4. NAPLÓZÁS TÁBLA (Módosítási napló)
-CREATE TABLE IF NOT EXISTS inventory_logs (
+-- A rendszer UUID (Universally Unique Identifier) alapú kulcsokat használ 
+-- az adatintegritás és a jövőbeli skálázhatóság biztosítása érdekében.
+DROP TABLE IF EXISTS inventory_logs;
+CREATE TABLE inventory_logs (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-    username VARCHAR(255) NOT NULL,
+    user_id UUID NOT NULL REFERENCES felhasznalok(id) ON DELETE CASCADE,
     cikkszam VARCHAR(50) NOT NULL,
     old_qty INT NOT NULL,
     new_qty INT NOT NULL,

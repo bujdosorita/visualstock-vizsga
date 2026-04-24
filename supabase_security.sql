@@ -1,6 +1,6 @@
 -- =========================================================================
 -- VISUALSTOCK - BIZTONSÁGI HÁZIRENDEK / RLS (Row Level Security) CONFIG
--- Verzió: v36.0
+-- Verzió: v36.1
 -- =========================================================================
 -- Deployment: Ez a szkript a Supabase SQL szerkesztőjében futtatandó,
 -- a tábla szintű jogosultságok érvényesítéséhez.
@@ -62,15 +62,12 @@ WITH CHECK (true);
 -- =========================================================================
 -- RBAC ADMIN ESCALATION OVERRIDE (VIZSGAKÖZPONTÚ JOGOSULTSÁG KIOSZTÁS)
 -- =========================================================================
--- Privilege Escalation:
--- Mivel regisztráció után mindenki "reader", az alábbi paranccsal tudod
--- kiosztani a létrehozott tesztfiókoknak (vizsga_admin, vizsga_editor) a jogosultságokat:
+-- FELHASZNÁLÓI SZEREPKÖRÖK KEZELÉSE (Példa adatok):
+-- Alapértelmezés szerint mindenki 'reader' jogosultságot kap.
+-- Az alábbi parancsokkal lehet a tesztfiókokat magasabb szintre emelni:
 
 -- UPDATE felhasznalok SET role = 'admin' WHERE username = 'vizsga_admin';
 -- UPDATE felhasznalok SET role = 'editor' WHERE username = 'vizsga_editor';
-
--- (A 'vizsga_reader' marad 'reader', így azon nem kell módosítani.)
--- =========================================================================
 -- AUDIT TRAIL (inventory_logs) POLICIES
 -- =========================================================================
 

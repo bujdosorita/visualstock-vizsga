@@ -10,14 +10,14 @@ A **VisualStock** egy modern, **Neon/Cyberpunk** stílusú raktárkészlet-kezel
 
 ---
 
-## ✨ Legújabb Funkciók (v36.0 - RBAC kiadás)
+## ✨ Legújabb Funkciók (v36.1 - RBAC kiadás)
 
-- [x] **Irányítópult (Dashboard)**: Szerepkörfüggő funkciókkal bővített vezérlőpult statisztikákkal.
-- [x] **Kiberbiztonság (RLS & Hashing)**: A jelszavak SHA-256 algoritmussal titkosítottak, az adatbázis megóvásáról pedig a Supabase Row Level Security (RLS) gondoskodik.
-- [x] **Szerepkör alapú hozzáférés (RBAC)**: Háromszintű jogosultságkezelés (Admin, Editor, Reader) biztosítja az adatvédelmet.
-- [x] **Módosítási Napló (Audit Trail)**: Adminisztrátorok számára elérhető vizuális módosítási előzmény-napló.
-- [x] **Rugalmas Készletmódosítás**: A készletértékek nemcsak a '+/-' gombokkal, hanem közvetlen (manuális) számbevitellel is villámgyorsan felülírhatók.
-- [x] **Tesztelői (QA) Védelmi Rendszer**: Tranzakciós határérték védelem (TC-03) és folyamatmegszakítás (TC-04).
+- [x] **TC-01: Adminisztrátori hozzáférés**: Rendszerszintű audit napló elérése.
+- [x] **TC-02: Reader jogosultság**: Olvasói fiókok automatikus korlátozása (Gombok elrejtése).
+- [x] **TC-03: Határvédelem**: Készletcsökkentés negatív tartományba (Automata korrekció).
+- [x] **TC-04: Keresés és szűrés**: Valós idejű találati lista kezelése.
+- [/] **TC-05: PWA Offline állapot**: Offline működés és Service Worker kezelés (Fejlesztés alatt).
+- [ ] **TC-06: Kézi bevitel validáció**: Numerikus adatok ellenőrzése (Tervezett).
 - [x] **Biztonságos Regisztráció**: E-mail alapú fiók létrehozása. Újbóli megnyitáskor automatikus mezőürítés és jelszó-elrejtés.
 - [x] **ERP Szinkron Jelzés**: Élő visszajelzés az utolsó adatszinkronizáció időpontjáról.
 - [x] **Okos Termékfotók**: Automatikus képkeresés és intelligens neon placeholder rendszer.
@@ -121,4 +121,4 @@ Az alkalmazás teljes mértékben felhőalapú (Supabase backend), így a futtat
 
 ---
 
-© 2026 VisualStock Premium - v36.0 (RBAC & Audit Trail Update)
+© 2026 VisualStock Premium - v36.1 (RBAC & Audit Trail Update)

@@ -1,4 +1,4 @@
-/* --- VISUALSTOCK NEON EDITION - v36.0 --- */
+/* --- VISUALSTOCK NEON EDITION --- */
 
 /* --- SZĂŤNPALETTA Ă‰S GLOBĂLIS VĂLTOZĂ“K --- */
 :root {
@@ -56,7 +56,7 @@ body {
     background: radial-gradient(circle at 50% 50%, #0a0a1f 0%, #050510 100%);
 }
 
-/* Cyber Grid Effect (Removed per user request) */
+/* DekorĂˇciĂłs hĂˇttĂ©r elemek rĂˇcshĂˇlĂł nĂ©lkĂĽl a tisztĂˇbb megjelenĂ©sĂ©rt */
 .bg-blobs::before {
     display: none;
 }
@@ -116,10 +116,8 @@ body {
     }
 }
 
-/* Background Ambient Glow REMOVED/UPDATED in body */
 .app-background {
     display: none;
-    /* Kikapcsoljuk a rĂ©gi sĂ¶tĂ©t hĂˇtteret */
 }
 
 /* --- FEJLĂ‰C (Navigation & Brand) --- */
@@ -181,7 +179,6 @@ header {
 .btn-minus {
     background-color: transparent;
     border: 1px solid rgba(255, 255, 255, 0.3);
-    /* Visible border */
     color: #ffffff;
     /* Bright white */
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);

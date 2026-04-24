@@ -27,7 +27,7 @@ serve(async (req) => {
 
     const { data: logs, error } = await supabaseClient
        .from('inventory_logs')
-       .select('*')
+       .select('*, felhasznalok(username)')
        .order('created_at', { ascending: false })
        .limit(50);
        
