@@ -47,7 +47,7 @@ Ennek értelmében a webes felületen (VisualStock) szándékosan **nincs lehet�
 
 - **Frontend**: HTML5, Vanilla CSS3, JavaScript (ES6+).
 - **Backend / DB**: Supabase (PostgreSQL, Row Level Security).
-- **Képforrás**: Vallfa.hu integráció.
+- **Képforrás**: Külső termékkatalógus integráció.
 - **Ikonok**: [Phosphor Icons](https://phosphoricons.com/).
 - **Betűtípus**: [Outfit](https://fonts.google.com/specimen/Outfit).
 
