@@ -111,4 +111,4 @@ Az alkalmazás teljes mértékben felhőalapú (Supabase backend), így a futtat
 
 ---
 
-© 2026 VisualStock Premium - V36.0 (RBAC & Audit Trail Update)
+© 2026 VisualStock Premium - v36.0 (RBAC & Audit Trail Update)
