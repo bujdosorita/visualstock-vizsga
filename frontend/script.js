@@ -473,9 +473,9 @@ async function modifyStock(cikkszam, valtozas) {
     // Constraint: Készlet nem lehet negatív (0-s alsó korlát)
     const ujKeszlet = Math.max(0, termekek[termekIndex].db + valtozas);
 
-    // QA Logging: TC-03 Teszt forgatókönyv lefedettsége
+    // QA Logging: UNIT-01 Teszt forgatókönyv lefedettsége
     if (termekek[termekIndex].db + valtozas < 0) {
-        console.warn(`TC-03 Teszt: Figyelem! A készlet nem mehet nulla alá! Művelet blokkolva.`);
+        console.warn(`UNIT-01 Teszt: Figyelem! A készlet nem mehet nulla alá! Művelet blokkolva.`);
     }
 
     termekek[termekIndex].db = ujKeszlet; 
@@ -587,8 +587,8 @@ function confirmBulkUpdate() {
     // Cancel flow
     btnCancel.onclick = function() {
         overlay.style.display = 'none';
-        // QA Logging: TC-04 Megszakítás forgatókönyv lefedettsége
-        console.warn(`TC-04 Teszt: Mentés megszakítva. A memória tartalma megmaradt (${count} db módosítás).`);
+        // QA Logging: UNIT-02 Megszakítás forgatókönyv lefedettsége
+        console.warn(`UNIT-02 Teszt: Mentés megszakítva. A memória tartalma megmaradt (${count} db módosítás).`);
     };
 }
 
