@@ -612,6 +612,7 @@ async function saveBulkChanges() {
             body: JSON.stringify({ 
                 updates,
                 userId: currentUser.id,
+                username: currentUser.name, // Visszafelé kompatibilitás a felhőben futó régebbi Edge Function-höz
                 role: currentUser.role
             })
         });
