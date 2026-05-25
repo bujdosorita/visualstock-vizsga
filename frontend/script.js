@@ -1050,7 +1050,21 @@ async function renderHistory(isBackgroundRefresh = false) {
             const t = termekek.find(t => String(t.cikkszam) === String(log.cikkszam));
             const termekNev = t ? t.nev : 'Ismeretlen termék';
             
-            const logUsername = log.felhasznalok ? log.felhasznalok.username : 'Ismeretlen';
+            // Robusztus felhasználónév feldolgozás (Tömb, Objektum vagy Fallback adatok kezelése)
+            let logUsername = 'Ismeretlen';
+            if (log.felhasznalok) {
+                if (Array.isArray(log.felhasznalok)) {
+                    if (log.felhasznalok.length > 0 && log.felhasznalok[0]) {
+                        logUsername = log.felhasznalok[0].username || 'Ismeretlen';
+                    }
+                } else if (typeof log.felhasznalok === 'object') {
+                    logUsername = log.felhasznalok.username || 'Ismeretlen';
+                }
+            } else if (log.username) {
+                logUsername = log.username;
+            } else if (log.user_id) {
+                logUsername = log.user_id; // Ha nincs név, legalább az ID-t jelenítsük meg
+            }
             
             rowsHtml += `
                 <tr>
